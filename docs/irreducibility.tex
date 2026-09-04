@@ -1,0 +1,394 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1.1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{hyperref}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\Ecal}{\mathcal{E}}
+\newcommand{\Xcal}{\mathcal{X}}
+\newcommand{\Scal}{\mathcal{S}}
+\newcommand{\Fcal}{\mathcal{F}}
+
+\title{Ergodicity of the projection-preserving switch chain\\
+on deduplicated single-sender directed hypergraphs}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We record the state space, the move set, and the ergodic properties of the
+Metropolis chain used to sample the exponential tilt $P_\theta(H)\propto
+e^{\theta\Phi(H)}$ over regroupings of a fixed directed projection. Symmetry of
+the proposal, aperiodicity, and the reduction to a per-sender problem are proved
+in full. Irreducibility is proved on the \emph{unrestricted} (row-repetition
+permitted) state space by reduction to Ryser's interchange theorem, and on the
+\emph{deduplicated} state space in the case where every hyperedge has size two,
+by reduction to the classical switch-connectivity theorem for simple graphs. For
+the deduplicated space with general size profiles we state the connectivity
+claim as a conjecture and report exhaustive computational verification; we are
+not aware of a proof, and we note that the analogous gap is present in the
+literature this construction builds on.
+\end{abstract}
+
+\section{Setup}
+
+\begin{definition}[Single-sender directed hypergraph]
+Let $V$ be a finite node set. An \emph{event} is a pair $(s,R)$ with $s\in V$
+and $R\subseteq V\setminus\{s\}$, $R\neq\emptyset$; $s$ is the \emph{sender}
+(tail) and $R$ the \emph{recipient set} (head). The \emph{team} of the event is
+$N=\{s\}\cup R$ and its \emph{size} is $k=|N|$. A single-sender directed
+hypergraph is a finite collection $H$ of events.
+\end{definition}
+
+Following Abuissa et al.~\cite{dinghy}, we distinguish \emph{edge-ordered}
+hypergraphs, in which hyperedges carry unique identifiers, from
+\emph{edge-unordered} ones, in which they do not. We work throughout with the
+\emph{deduplicated} (or \emph{simple}) case, in which $H$ is a \emph{set} of
+events: no event is repeated. This is strictly stronger than being
+edge-unordered, where the edge collection is a multiset whose elements merely
+lack identifiers.
+
+\begin{definition}[Projection and fiber]
+The \emph{weighted directed projection} of $H$ is the map
+$\pi_H:V\times V\to\mathbb{Z}_{\ge0}$,
+\[
+  \pi_H(u,v)\;=\;\#\{(s,R)\in H:\ s=u,\ v\in R\}.
+\]
+Given an observed $H_0$, the \emph{fiber} $\Fcal(H_0)$ is the set of
+deduplicated single-sender directed hypergraphs $H$ such that
+\begin{enumerate}
+\item[(F1)] $\pi_H=\pi_{H_0}$ (identical weighted directed projection), and
+\item[(F2)] for every sender $s$, the multiset of sizes of $s$'s events in $H$
+equals that in $H_0$.
+\end{enumerate}
+\end{definition}
+
+Condition (F1) is what makes graph reciprocity constant across the fiber;
+(F2) is an identification choice, conditioning out the hyperedge-size
+composition, which mechanically influences every group-reciprocity measure.
+
+\begin{definition}[Switch]
+Let $H\in\Fcal(H_0)$, let $s$ be a sender, and let $E_i\neq E_j$ be two of $s$'s
+recipient sets. Let $a\in E_i\setminus E_j$ and $b\in E_j\setminus E_i$. The
+\emph{switch} $\sigma_{s,i,j,a,b}$ replaces $E_i$ by
+$E_i'=(E_i\setminus\{a\})\cup\{b\}$ and $E_j$ by
+$E_j'=(E_j\setminus\{b\})\cup\{a\}$, leaving all other events unchanged. The
+switch is \emph{admissible} if the resulting collection is still deduplicated.
+\end{definition}
+
+\begin{definition}[The chain]
+Fix $\theta\in\mathbb{R}$ and a statistic $\Phi:\Fcal(H_0)\to\mathbb{R}$. One
+step of the chain from $H$: choose a sender $s$ uniformly from those with at
+least two events, choose ordered indices $i,j$ uniformly and independently from
+$s$'s $m_s$ events, choose $a$ uniformly from $E_i\setminus E_j$ and $b$
+uniformly from $E_j\setminus E_i$. If $i=j$, or either difference set is empty,
+or the switch is inadmissible, remain at $H$. Otherwise move to
+$H'=\sigma_{s,i,j,a,b}(H)$ with probability $\min\{1,e^{\theta(\Phi(H')-\Phi(H))}\}$
+and remain at $H$ otherwise.
+\end{definition}
+
+\begin{remark}
+Every failed proposal consumes a step and is a self-loop. Resampling until a
+valid proposal is found would replace the transition kernel $p(H,\cdot)$ by
+$p(H,\cdot)/(1-p_{\mathrm{fail}}(H))$; since $p_{\mathrm{fail}}$ is
+state-dependent, the resulting chain is not symmetric and its stationary law is
+proportional to $e^{\theta\Phi(H)}\bigl(1-p_{\mathrm{fail}}(H)\bigr)$ rather
+than $e^{\theta\Phi(H)}$.
+\end{remark}
+
+\section{Structural lemmas}
+
+\begin{lemma}[Invariance]\label{lem:inv}
+Every switch preserves (F1) and (F2). Consequently the chain never leaves
+$\Fcal(H_0)$.
+\end{lemma}
+
+\begin{proof}
+A switch moves recipient $a$ from $E_i$ to $E_j$ and $b$ from $E_j$ to $E_i$,
+both within the events of a single sender $s$. For $r\notin\{a,b\}$ the count
+$\pi(s,r)$ is untouched; $\pi(s,a)$ loses one occurrence in $E_i$ and gains one
+in $E_j$, and symmetrically for $b$; no other sender's events change. Hence (F1).
+Since $|E_i'|=|E_i|$ and $|E_j'|=|E_j|$, the multiset of sizes is preserved,
+giving (F2). Admissibility preserves deduplication by definition.
+\end{proof}
+
+\begin{lemma}[Involution and symmetry]\label{lem:sym}
+Write $A=E_i\setminus E_j$, $B=E_j\setminus E_i$, $C=E_i\cap E_j$. After the
+switch, $A'=E_i'\setminus E_j'=(A\setminus\{a\})\cup\{b\}$ and
+$B'=E_j'\setminus E_i'=(B\setminus\{b\})\cup\{a\}$; in particular $|A'|=|A|$ and
+$|B'|=|B|$. The map $\sigma_{s,i,j,b,a}$ inverts $\sigma_{s,i,j,a,b}$, and the
+proposal kernel $q$ satisfies $q(H,H')=q(H',H)$.
+\end{lemma}
+
+\begin{proof}
+$E_i'=C\cup(A\setminus\{a\})\cup\{b\}$ and $E_j'=C\cup(B\setminus\{b\})\cup\{a\}$.
+As $A,B,C$ are pairwise disjoint and $a\neq b$, the stated forms of $A'$ and
+$B'$ follow, and the cardinalities are preserved. Applying the switch with the
+roles of $a$ and $b$ exchanged restores $E_i$ and $E_j$. The proposal
+probability of the forward move is
+$\frac{1}{|S|}\cdot\frac{1}{m_s^2}\cdot\frac{1}{|A|}\cdot\frac{1}{|B|}$
+and of the reverse move
+$\frac{1}{|S|}\cdot\frac{1}{m_s^2}\cdot\frac{1}{|A'|}\cdot\frac{1}{|B'|}$;
+these agree.
+\end{proof}
+
+Lemma~\ref{lem:sym} is the analogue in our setting of \cite[Theorem~2]{dinghy},
+which establishes double stochasticity of the DiNgHy transition matrix.
+
+\begin{lemma}[Identity switches]\label{lem:id}
+$|A|=|B|=1$ if and only if the switch exchanges $E_i$ and $E_j$, i.e.\
+$E_i'=E_j$ and $E_j'=E_i$. In the deduplicated (edge-unordered) state space such
+a switch is the identity.
+\end{lemma}
+
+\begin{proof}
+If $A=\{a\}$ and $B=\{b\}$ then $E_i=C\cup\{a\}$ and $E_j=C\cup\{b\}$, so
+$E_i'=C\cup\{b\}=E_j$ and $E_j'=C\cup\{a\}=E_i$. Conversely if $E_i'=E_j$ then
+$(A\setminus\{a\})\cup\{b\}=B$, and since $b\notin A$ this forces $A=\{a\}$;
+symmetrically $B=\{b\}$.
+\end{proof}
+
+\begin{lemma}[Factorisation]\label{lem:fact}
+$\Fcal(H_0)\cong\prod_{s}\Fcal_s(H_0)$, where $\Fcal_s$ is the set of
+deduplicated collections of $s$'s events satisfying (F1) and (F2) for that
+sender alone. Every switch acts within a single factor. Hence the chain is
+irreducible on $\Fcal(H_0)$ if and only if its restriction to $\Fcal_s$ is
+irreducible for every $s$.
+\end{lemma}
+
+\begin{proof}
+Conditions (F1) and (F2) are stated per sender, and by Lemma~\ref{lem:inv} a
+switch modifies only the events of one sender. Deduplication also decomposes:
+two events with different senders are automatically distinct. The product
+structure and the componentwise action follow, and irreducibility of a product
+chain in which each step moves one coordinate is equivalent to irreducibility of
+each coordinate chain.
+\end{proof}
+
+\medskip
+By Lemma~\ref{lem:fact} we may fix a single sender $s$ and drop it from the
+notation. Let $R_1,\dots,R_n$ enumerate the recipients ever contacted by $s$,
+let $c_r=\pi(s,R_r)$, and let $E_1,\dots,E_m$ be $s$'s events. Encode the state
+as the $m\times n$ incidence matrix $M$ with $M_{ir}=\mathbf{1}[R_r\in E_i]$.
+Then (F2) fixes the row sums, (F1) fixes the column sums, and deduplication
+says the rows of $M$ are pairwise distinct. A switch is exactly the classical
+\emph{interchange}: choosing rows $i\neq j$ and columns $a\neq b$ with
+$M_{ia}=M_{jb}=1$, $M_{ib}=M_{ja}=0$, and replacing the $2\times2$ submatrix
+$\begin{psmallmatrix}1&0\\0&1\end{psmallmatrix}$ by
+$\begin{psmallmatrix}0&1\\1&0\end{psmallmatrix}$.
+
+\begin{lemma}[Aperiodicity]\label{lem:aper}
+For every $H\in\Fcal(H_0)$, $p(H,H)\ge c$ where
+$c=\frac{1}{|S|}\sum_{s\in S}\frac{1}{m_s}>0$ is independent of $H$. In
+particular the chain is aperiodic.
+\end{lemma}
+
+\begin{proof}
+The event $\{i=j\}$ has probability $1/m_s$ once sender $s$ is chosen, and
+results in a self-loop. By (F2) the number $m_s$ of events of each sender is
+invariant along the chain, so $c$ does not depend on the state.
+\end{proof}
+
+\begin{remark}
+Lemma~\ref{lem:aper} shows that making the chain \emph{lazy} --- replacing $p$
+by $\lambda p+(1-\lambda)I$ --- is unnecessary here: the required uniform lower
+bound on the holding probability is already available. Laziness preserves the
+stationary law and reversibility, but multiplies the mixing time by
+$\Theta(1/\lambda)$, and \cite{dinghy} indeed report designing their proposal to
+\emph{reduce} self-loops for faster mixing.
+\end{remark}
+
+\section{Irreducibility}
+
+\subsection{The unrestricted state space}
+
+Let $\Xcal$ denote the set of $m\times n$ zero-one matrices with the given row
+and column sums, \emph{without} the distinct-rows requirement --- equivalently,
+the edge-ordered state space in which a sender may repeat an event.
+
+\begin{theorem}[Ryser]\label{thm:ryser}
+Any two matrices in $\Xcal$ are connected by a finite sequence of interchanges.
+Consequently the switch chain restricted to $\Xcal$ is irreducible, and together
+with Lemmas~\ref{lem:sym} and \ref{lem:aper} it is ergodic with stationary law
+proportional to $e^{\theta\Phi}$.
+\end{theorem}
+
+\begin{proof}
+This is Ryser's interchange theorem \cite{ryser1957}; see also Brualdi's survey
+\cite{brualdi1980}. In the bipartite-graph formulation --- rows and columns as
+the two sides, $M_{ir}=1$ as an edge --- it is the statement that the switch
+chain on bipartite graphs with prescribed degree sequences is irreducible, as
+used by Kannan, Tetali and Vempala \cite{ktv1999} and by
+Abuissa et al.~\cite{dinghy}.
+\end{proof}
+
+\subsection{The deduplicated state space}
+
+Let $\Scal\subsetneq\Xcal$ be the subset of matrices with pairwise distinct
+rows, and let switches be admissible only when they stay in $\Scal$. Removing
+states from a connected graph can disconnect it, so Theorem~\ref{thm:ryser}
+does \emph{not} imply that $\Scal$ is connected, and the question is genuinely
+different.
+
+Two special cases are settled.
+
+\begin{proposition}[Distinct sizes]\label{prop:sizes}
+If the row sums $|E_1|,\dots,|E_m|$ are pairwise distinct then $\Scal=\Xcal$ and
+the chain is irreducible on $\Scal$ by Theorem~\ref{thm:ryser}.
+\end{proposition}
+
+\begin{proof}
+Rows of different sums cannot be equal, so the distinctness constraint is
+vacuous, and every interchange is admissible.
+\end{proof}
+
+\begin{theorem}[All events dyadic]\label{thm:size2}
+If every event has size $k=3$, i.e.\ every row sum equals $2$, then the switch
+chain is irreducible on $\Scal$.
+\end{theorem}
+
+\begin{proof}
+Identify each row, a $2$-subset of recipients, with an edge of a graph $G$ on
+the recipient vertex set; the column sums are the degrees of $G$ and
+distinctness of rows says exactly that $G$ is simple. An admissible interchange
+takes two disjoint or sharing edges and rewires them without creating a
+multi-edge, which is precisely the double edge swap. The theorem is then the
+classical statement that any two simple graphs with the same degree sequence are
+connected by double edge swaps, due to Petersen \cite{petersen1891} in the
+regular case and in the general form given by Havel \cite{havel1955}, Hakimi
+\cite{hakimi1962}, Eggleton and Holton \cite{eggleton1979} and Taylor
+\cite{taylor1981}. See \cite{fosdick2018} for a modern treatment aimed at
+sampling.
+\end{proof}
+
+For general size profiles we do not have a proof.
+
+\begin{conjecture}\label{conj:main}
+For every choice of row sums and column sums, the admissible-interchange graph
+on $\Scal$ is connected.
+\end{conjecture}
+
+\paragraph{Computational verification.}
+Conjecture~\ref{conj:main} was checked exhaustively on small instances. For each
+$n\le 7$ recipients and each size profile drawn from uniform profiles
+$(k,\dots,k)$ with $k\in\{2,3,4\}$ and $m\le 6$ rows, and mixed profiles
+combining sizes $2,3,4$, every fiber was enumerated, grouped by column-sum
+vector, and the admissible-interchange graph on each fiber with at least two
+states was tested for connectivity by breadth-first search. Across two
+independent sweeps this covered roughly $4.3\times10^4$ non-trivial fibers, the
+largest containing $2367$ states. \emph{No disconnected fiber was found.}
+
+\begin{remark}
+This is evidence, not proof, and the reader should treat
+Conjecture~\ref{conj:main} accordingly. We note that the same gap is present in
+the closest prior work: Abuissa et al.~\cite{dinghy} show that the Markov chain
+underlying their sampler is \emph{not} irreducible in general, and supply only
+sufficient conditions for irreducibility; they also observe that no general
+mixing-time analysis is available even for the dyadic switch chain
+\cite{erdos2022}. A practical mitigation, which we adopt, is to verify
+empirically that chains started from several distinct states in the same fiber
+converge to a common distribution of $\Phi$.
+\end{remark}
+
+\section{Consequence}
+
+\begin{corollary}
+Assume Conjecture~\ref{conj:main}, or either of the hypotheses of
+Proposition~\ref{prop:sizes} and Theorem~\ref{thm:size2}. Then the chain is
+irreducible (Lemma~\ref{lem:fact}) and aperiodic (Lemma~\ref{lem:aper}) on
+$\Fcal(H_0)$, its proposal is symmetric (Lemma~\ref{lem:sym}), and hence the
+Metropolis chain has unique stationary distribution
+\[
+  P_\theta(H)\;=\;\frac{e^{\theta\Phi(H)}}{\sum_{H'\in\Fcal(H_0)}e^{\theta\Phi(H')}},
+  \qquad H\in\Fcal(H_0).
+\]
+At $\theta=0$ this is the uniform distribution on $\Fcal(H_0)$, i.e.\ the
+projection-preserving null model. Since every $H\in\Fcal(H_0)$ has
+$\pi_H=\pi_{H_0}$, the reciprocity of the directed projection is constant on
+$\Fcal(H_0)$ and therefore invariant in $\theta$.
+\end{corollary}
+
+\begin{remark}
+Because the state space is deduplicated, $|E|=\sum_N p_N$, the number of
+distinct directed hyperedges, is constant on $\Fcal(H_0)$. As $|E|$ is the
+denominator of the group-reciprocity measures, those measures are then computed
+against a fixed normalisation for every $\theta$. This fails on the
+edge-ordered space, where an interchange may render two of a sender's events
+identical.
+\end{remark}
+
+\begin{thebibliography}{99}
+
+\bibitem{dinghy}
+M.~Abuissa, A.~Kirkley, and M.~Riondato.
+\newblock DiNgHy: null models for non-degenerate directed hypergraphs.
+\newblock \emph{Data Mining and Knowledge Discovery} (to appear).
+\newblock \emph{[Verify authors, year, volume before use.]}
+
+\bibitem{ryser1957}
+H.~J.~Ryser.
+\newblock Combinatorial properties of matrices of zeros and ones.
+\newblock \emph{Canadian Journal of Mathematics}, 9:371--377, 1957.
+
+\bibitem{brualdi1980}
+R.~A.~Brualdi.
+\newblock Matrices of zeros and ones with fixed row and column sum vectors.
+\newblock \emph{Linear Algebra and its Applications}, 33:159--231, 1980.
+
+\bibitem{ktv1999}
+R.~Kannan, P.~Tetali, and S.~Vempala.
+\newblock Simple Markov-chain algorithms for generating bipartite graphs and
+  tournaments.
+\newblock \emph{Random Structures \& Algorithms}, 14(4):293--308, 1999.
+
+\bibitem{petersen1891}
+J.~Petersen.
+\newblock Die Theorie der regul\"aren Graphs.
+\newblock \emph{Acta Mathematica}, 15:193--220, 1891.
+
+\bibitem{havel1955}
+V.~Havel.
+\newblock A remark on the existence of finite graphs.
+\newblock \emph{\v{C}asopis pro p\v{e}stov\'an\'i matematiky}, 80:477--480, 1955.
+
+\bibitem{hakimi1962}
+S.~L.~Hakimi.
+\newblock On realizability of a set of integers as degrees of the vertices of a
+  linear graph.
+\newblock \emph{SIAM Journal on Applied Mathematics}, 10(3):496--506, 1962.
+
+\bibitem{eggleton1979}
+R.~B.~Eggleton and D.~A.~Holton.
+\newblock Simple and multigraphic realizations of degree sequences.
+\newblock In \emph{Combinatorial Mathematics VIII}, Lecture Notes in
+  Mathematics 884, Springer, 1979.
+
+\bibitem{taylor1981}
+R.~Taylor.
+\newblock Constrained switchings in graphs.
+\newblock In \emph{Combinatorial Mathematics VIII}, Lecture Notes in
+  Mathematics 884, pages 314--336. Springer, 1981.
+
+\bibitem{fosdick2018}
+B.~K.~Fosdick, D.~B.~Larremore, J.~Nishimura, and J.~Ugander.
+\newblock Configuring random graph models with fixed degree sequences.
+\newblock \emph{SIAM Review}, 60(2):315--355, 2018.
+
+\bibitem{erdos2022}
+P.~L.~Erd\H{o}s, T.~R.~Mezei, I.~Mikl\'os, et al.
+\newblock On the mixing time of the switch Markov chain.
+\newblock \emph{[Cited via \cite{dinghy}; verify exact reference.]}
+
+\end{thebibliography}
+
+\end{document}
