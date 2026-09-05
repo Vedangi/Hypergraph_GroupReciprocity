@@ -41,8 +41,10 @@ SWEEP_MULT = 20
 REPS = 2
 THETAS = [-1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0]
 
-DATASETS = [("enron", "link_pred", None), ("congress", "link_pred", None),
-            ("dblp", "dblp_mat", None), ("twitter", "link_pred", None)]
+# congress needs CONGRESS_DIR, dblp needs DBLP_MAT (data not bundled);
+# missing ones are skipped with a traceback by the per-dataset guard.
+DATASETS = [("enron", "datasets", None), ("congress", "datasets", None),
+            ("dblp", "dblp_mat", None), ("twitter", "datasets", None)]
 
 INK, BODY, MUTED, GRID, SURF = ("#1a1a19", "#3d3d3a", "#6e6d68",
                                 "#ececE8", "#ffffff")
@@ -62,9 +64,9 @@ def load_raw(key, source, max_size=None):
         it = [(int(r.sender), list(r.recipients))
               for r in df.itertuples(index=False)]
     else:
-        import datasets as lpf
+        import datasets
         it = [(int(s), list(R))
-              for s, R, _t in lpf.load_dataset(key, max_size=max_size)]
+              for s, R, _t in datasets.load_dataset(key, max_size=max_size)]
     out = []
     for s, R in it:
         R = sorted(set(int(x) for x in R) - {s})
@@ -171,7 +173,7 @@ def part1():
 # ------------------------------------------------------------------- PART 2
 def part2():
     print("\n\n===== MIXING TEST (email-Eu, raw) =====", flush=True)
-    ev = load_raw("emaileu", "link_pred", None)
+    ev = load_raw("emaileu", "datasets", None)
     tokens = sum(len(R) for _s, R in ev)
     print(f"  {len(ev):,} events, {tokens:,} tokens; "
           f"Phi(real) = {MT._build_state(ev,'r2')[2]:,.1f}", flush=True)

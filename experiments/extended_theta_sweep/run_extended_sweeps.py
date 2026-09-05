@@ -65,12 +65,8 @@ KEYS = ("r2_multi", "s1_multi", "r1_multi", "s1_support",
 
 def load_raw(key):
     """RAW group stream: duplicates KEPT, 3 <= k <= KMAX."""
-    if key in ("dnc", "fauci"):
-        import datasets as E6
-        it = [(int(s), list(R)) for s, R, _t in E6.load_dataset(key)]
-    else:
-        import datasets as lpf
-        it = [(int(s), list(R)) for s, R, _t in lpf.load_dataset(key)]
+    import datasets
+    it = [(int(s), list(R)) for s, R, _t in datasets.load_dataset(key)]
     out = []
     for s, R in it:
         R = sorted(set(int(x) for x in R) - {s})

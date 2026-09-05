@@ -74,7 +74,10 @@ def full_participation(events, maxedgesize=1000):              # r1
     return recvec, (num / den if den else 0.0)
 
 
-def partial_participation(events, maxedgesize=1000):           # r2 (k-weighted, as in Julia)
+def partial_participation(events, maxedgesize=1000):
+    # k-weighted r2 (as in the Julia reference implementation).
+    # NOTE: this is NOT the paper's partial-participation measure;
+    # use grant_r2 below when regenerating paper tables.
     hyp = _hyp(events); num = den = 0.0; recvec = {}
     for k in range(2, _kmax(hyp, maxedgesize) + 1):
         numk = denk = 0.0
@@ -136,6 +139,8 @@ def full_group_leader(events, maxedgesize=1000, maxk=100):      # r3
     return recvec, (num / den if den else 0.0)
 
 def grant_r2(events, maxedgesize=1000):
+    # The paper's partial-participation formula (base = sum of p_e).
+    # This is the variant reported in the Model-B tables.
     hyp = _hyp(events)
     num = den = 0.0
     recvec = {}

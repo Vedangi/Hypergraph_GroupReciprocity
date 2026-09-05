@@ -254,7 +254,8 @@ def theta_sweep(events, thetas, reps=2, sweep_multiplier=20, n_steps=None,
 # -------------------------------------------------------------------- driver
 def _load_raw_emaileu(kmax=25):
     """RAW email-Eu group stream: duplicates KEPT, k>=3, size cap."""
-    import link_pred_features as lpf
+    sys.path.insert(0, os.path.abspath(os.path.join(HERE, "..")))
+    import datasets as lpf
     ev = []
     for s, R, _t in lpf.load_dataset("emaileu"):
         R = sorted(set(int(x) for x in R) - {int(s)})

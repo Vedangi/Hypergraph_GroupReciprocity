@@ -7,8 +7,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import run_extended_sweeps as R
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-df = pd.read_csv(os.path.join(HERE, "extended_sweeps.csv"))
-R.plot_summary(df, os.path.join(HERE, "ext_theta_hat.pdf"))
+# a fresh run writes the CSV here; otherwise use the shipped results copy
+CSV = os.path.join(HERE, "extended_sweeps.csv")
+if not os.path.exists(CSV):
+    CSV = os.path.abspath(os.path.join(
+        HERE, "..", "..", "results", "extended_theta_sweep",
+        "extended_sweeps.csv"))
+df = pd.read_csv(CSV)
+R.plot_summary(df, os.path.join(os.path.dirname(CSV), "ext_theta_hat.pdf"))
 print(f"\n{'dataset':16s} {'events':>8s} {'%dup':>6s} {'sweeps':>7s} "
       f"{'theta_hat':>9s} {'null':>8s} {'real':>8s} {'ratio':>7s} {'max 2-start gap':>16s}")
 for key, g in df.groupby("dataset", sort=False):

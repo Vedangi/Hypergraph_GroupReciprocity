@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """multi_reciprocity.py -- reciprocity scores for single-sender directed
 MULTI-hypergraphs (duplicate hyperedges allowed), implementing
-../graph_and_multihypergraph_reciprocity.md.
+docs/measures.md.
 
 An event is (sender s, recipient list R); duplicates are kept, timestamps are
 ignored.  For each team T = {s} u R let

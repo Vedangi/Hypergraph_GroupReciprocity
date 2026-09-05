@@ -22,9 +22,14 @@ NICE = {"s1_multi": r"$R_{\mathrm{any}}^{\mathrm{multi}}$",
         "r1_multi": r"$R_{\mathrm{all}}^{\mathrm{multi}}$",
         "s1_support": r"$R_{\mathrm{any}}$ (support)"}
 
-pr = pd.read_csv(os.path.join(HERE, "multi_unlabelled_probe.csv"))
-mx = pd.read_csv(os.path.join(HERE, "multi_unlabelled_mixing.csv"))
-fin = json.load(open(os.path.join(HERE, "multi_unlabelled_null_final.json")))
+_RES = os.path.abspath(os.path.join(HERE, "..", "..", "results", "unlabelled_base"))
+def _in(name):
+    """Fresh outputs next to this script win; else the shipped results copy."""
+    p = os.path.join(HERE, name)
+    return p if os.path.exists(p) else os.path.join(_RES, name)
+pr = pd.read_csv(_in("multi_unlabelled_probe.csv"))
+mx = pd.read_csv(_in("multi_unlabelled_mixing.csv"))
+fin = json.load(open(_in("multi_unlabelled_null_final.json")))
 E = fin["real"]["n_events"]
 
 def _style(a):
@@ -98,5 +103,6 @@ ax[1].legend(handles=h, fontsize=8.5, frameon=False, labelcolor=BODY,
 for a in ax: _style(a)
 fig.suptitle("Event-labelled vs unlabelled null on RAW email-Eu "
              "(duplicates kept, 3 ≤ k ≤ 25)", fontsize=12, color=INK)
-out = os.path.join(HERE, "multi_unlabelled_emaileu.pdf")
+out = os.path.join(os.path.dirname(_in("multi_unlabelled_null_final.json")),
+                   "multi_unlabelled_emaileu.pdf")
 fig.savefig(out, facecolor=SURF); print("[saved]", out)

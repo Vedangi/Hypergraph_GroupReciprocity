@@ -216,7 +216,7 @@ def load_events_congress(folder, limit=None):
 
 def load_dataset(name, limit=None, max_size=None):
     """Load one bundled dataset by key; optional team-size cap (|T| <= max_size)."""
-    path = DATASETS[name]
+    path = DATASETS.get(name)  # congress has no bundled path
     if name in ("emaileu", "enron"):
         events = load_events_triples(path)
     elif name == "dnc":
@@ -225,6 +225,12 @@ def load_dataset(name, limit=None, max_size=None):
         events = load_events_fauci(path)
     elif name == "twitter":
         events = load_events_twitter(path)
+    elif name == "congress":
+        folder = os.environ.get("CONGRESS_DIR")
+        if not folder:
+            raise FileNotFoundError(
+                "congress-bills is not bundled; set CONGRESS_DIR to its folder")
+        events = load_events_congress(folder)
     else:
         raise ValueError(f"Unknown dataset: {name!r}")
     if max_size:
