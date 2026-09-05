@@ -11,8 +11,11 @@ duplicates kept.
 | `twitter` | `twitter/twitter_observed_min1_events.parquet` | processed mention events from the Twitter follower network crawl | 15,760 |
 | `enron` | `enron/out.enron` | KONECT "Enron employees" temporal edges | 57,423 |
 | `emaileu` | `emailEu/email-Eu-core-temporal.txt` | SNAP `email-Eu-core-temporal` | (appendix base-measure study) |
+| `radoslaw` | `radoslaw/out.radoslaw_email_email` | KONECT "Manufacturing emails" (Radoslaw Michalski et al.) | 7,906 |
+| `higgs` | `higgs/higgs-activity_time.txt.gz` | SNAP "Higgs Twitter" mention (MT) layer, July 2012 (De Domenico et al. 2013) | 16,381 |
+| `wiki` | `wiki/talk_hyperedges.csv` | processed Simple English Wikipedia talk-page discussions | 927 |
 
-For pairwise-timestamped sources (emaileu, enron, dnc) an event is formed by
+For pairwise-timestamped sources (emaileu, enron, dnc, radoslaw, higgs) an event is formed by
 merging all recipients a sender addressed at the same timestamp; fauci and
 twitter are native hyperedge tables.
 

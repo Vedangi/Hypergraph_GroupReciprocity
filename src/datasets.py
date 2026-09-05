@@ -39,6 +39,9 @@ DATASETS = {
     "dnc":     DATA_DIR / "dnc/email-dnc.edges",
     "fauci":   DATA_DIR / "fauci/fauci_temporal_hyperedges.csv",
     "twitter": DATA_DIR / "twitter/twitter_observed_min1_events.parquet",
+    "radoslaw": DATA_DIR / "radoslaw/out.radoslaw_email_email",
+    "wiki":    DATA_DIR / "wiki/talk_hyperedges.csv",
+    "higgs":   DATA_DIR / "higgs/higgs-activity_time.txt.gz",
 }
 
 
@@ -147,6 +150,67 @@ def load_events_twitter(path, limit=None):
     return events[:limit] if limit else events
 
 
+def load_events_wiki(path, limit=None):
+    """Simple-English-Wikipedia talk-page hyperedges.
+
+    CSV columns: ns, page, sender, recipients ('|'-separated usernames),
+    cardinality, timestamp like "15:16, 29 July 2022 (UTC)". Usernames are
+    mapped to integer ids (sorted order, deterministic)."""
+    df = pd.read_csv(path)
+    ts = pd.to_datetime(
+        df["timestamp"].str.replace(" (UTC)", "", regex=False),
+        format="%H:%M, %d %B %Y", errors="coerce")
+    sec = ts.astype("int64") // 10**9
+
+    names = set()
+    rows = []
+    for s, rc, t, ok in zip(df["sender"], df["recipients"], sec, ts.notna()):
+        if not ok or pd.isna(s) or pd.isna(rc):
+            continue
+        s = str(s)
+        R = [str(x) for x in str(rc).split("|") if x != "" and str(x) != s]
+        if not R:
+            continue
+        names.add(s)
+        names.update(R)
+        rows.append((s, R, int(t)))
+    uid = {n: i for i, n in enumerate(sorted(names))}
+
+    events, seen = [], set()
+    for s, R, t in rows:
+        s_i = uid[s]
+        R_i = sorted({uid[x] for x in R})
+        key = (s_i, tuple(R_i), t)
+        if key in seen:
+            continue
+        seen.add(key)
+        events.append((s_i, R_i, t))
+    events.sort(key=lambda e: (e[2], e[0]))
+    return events[:limit] if limit else events
+
+
+def load_events_higgs(path, interaction="MT", limit=None):
+    """Higgs Twitter activity (SNAP): rows "userA userB timestamp type"
+    where userA acts on userB. For type MT, userA's tweet mentions userB, so
+    one tweet mentioning several users shares (userA, timestamp) -> merge
+    those rows into a mention hyperedge. RE rows duplicate the MT rows of the
+    same tweet (a reply always mentions), so the MT layer alone is canonical."""
+    import gzip
+    by_event = defaultdict(set)
+    opener = gzip.open if str(path).endswith(".gz") else open
+    with opener(path, "rt") as fh:
+        for line in fh:
+            parts = line.split()
+            if len(parts) != 4 or parts[3] != interaction:
+                continue
+            a, b, t = int(parts[0]), int(parts[1]), int(parts[2])
+            if a != b:
+                by_event[(a, t)].add(b)
+    events = [(s, sorted(R), t) for (s, t), R in by_event.items() if R]
+    events.sort(key=lambda e: (e[2], e[0]))
+    return events[:limit] if limit else events
+
+
 # ---------------------------------------------------------------------------
 # optional loaders for non-communication data (files not bundled)
 
@@ -225,6 +289,12 @@ def load_dataset(name, limit=None, max_size=None):
         events = load_events_fauci(path)
     elif name == "twitter":
         events = load_events_twitter(path)
+    elif name == "radoslaw":
+        events = load_events_triples(path)
+    elif name == "wiki":
+        events = load_events_wiki(path)
+    elif name == "higgs":
+        events = load_events_higgs(path)
     elif name == "congress":
         folder = os.environ.get("CONGRESS_DIR")
         if not folder:
