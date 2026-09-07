@@ -276,6 +276,21 @@ def load_events_congress(folder, limit=None):
     return events[:limit] if limit else events
 
 
+def load_events_mat(path, limit=None):
+    """Directed hypergraph from a MATLAB v7.3 .mat (H incidence + Senders),
+    e.g. the DBLP/congress collaboration files (static; t = 0). Delegates to
+    reciprocity_dedup.df_events_from_mat so counts match the original runs."""
+    sys_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dedup")
+    import sys as _sys
+    if sys_dir not in _sys.path:
+        _sys.path.insert(0, sys_dir)
+    import reciprocity_dedup as _rd
+    df = _rd.df_events_from_mat(str(path))
+    events = [(int(r.sender), sorted(int(x) for x in r.recipients), 0)
+              for r in df.itertuples(index=False)]
+    return events[:limit] if limit else events
+
+
 # ---------------------------------------------------------------------------
 
 def load_dataset(name, limit=None, max_size=None):
@@ -295,6 +310,11 @@ def load_dataset(name, limit=None, max_size=None):
         events = load_events_wiki(path)
     elif name == "higgs":
         events = load_events_higgs(path)
+    elif name == "dblp":
+        mat = os.environ.get("DBLP_MAT")
+        if not mat:
+            raise FileNotFoundError("set DBLP_MAT to the DBLP .mat file (not bundled)")
+        events = load_events_mat(mat)
     elif name == "congress":
         folder = os.environ.get("CONGRESS_DIR")
         if not folder:
