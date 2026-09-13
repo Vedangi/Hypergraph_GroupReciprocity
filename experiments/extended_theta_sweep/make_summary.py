@@ -24,3 +24,8 @@ for key, g in df.groupby("dataset", sort=False):
           f"{n0.sweeps:7.0f} {th:9.2f} {n0.r2_multi:8.4f} "
           f"{n0.real_r2_multi:8.4f} {n0.real_r2_multi/n0.r2_multi:6.2f}x "
           f"{g.two_start_gap.max():15.2%}")
+
+# How this was run:
+#   <venv-python> make_summary.py
+# Rebuilds ext_theta_hat.pdf + the console summary table from
+# extended_sweeps.csv (falls back to ../../results copy if none local).

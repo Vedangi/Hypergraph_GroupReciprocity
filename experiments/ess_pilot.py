@@ -219,3 +219,12 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# How this was run (2026-09-06/07):  [<venv-python> = a python with numpy/pandas/matplotlib (locally: ml-projects/.venv/bin/python)]
+#   cd Hypergraph_GroupReciprocity/experiments && mkdir -p ess_pilot_results
+#   <venv-python> ess_pilot.py            # defaults: fauci,wiki,dnc,radoslaw,higgs; 4 chains, auto sweeps
+#   ESS_DATASETS=dnc,twitter ESS_SWEEPS=1400 ESS_CHAINS=6 <venv-python> ess_pilot.py
+#   ESS_DATASETS=enron       ESS_SWEEPS=1500 ESS_CHAINS=6 <venv-python> ess_pilot.py
+#   DBLP_MAT=<path to authors_dblp_hypergraph.mat> ESS_DATASETS=dblp ESS_SWEEPS=1000 ESS_CHAINS=6 <venv-python> ess_pilot.py
+#   CONGRESS_DIR=<path to congress-bills dir>      ESS_DATASETS=congress ESS_SWEEPS=1000 ESS_CHAINS=6 <venv-python> ess_pilot.py
+# Outputs: ess_pilot_results/ess_pilot.csv (one row per dataset, merged) + trace_<dataset>.npy

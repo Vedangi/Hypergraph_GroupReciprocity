@@ -1,0 +1,8 @@
+dataset,n_events_multi,n_events_dedup
+fauci,408,310
+wiki,927,849
+dnc,5200,2789
+radoslaw,7906,3445
+higgs,16381,15503
+twitter,15760,12453
+enron,57423,39429

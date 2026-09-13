@@ -178,3 +178,7 @@ def _selftest():
 
 if __name__ == "__main__":
     _selftest()
+
+# How this was run:
+#   <venv-python> support_reciprocity.py     # executes _selftest()
+# Library file otherwise -- import support_measures_team / _events / _dedup_edges.

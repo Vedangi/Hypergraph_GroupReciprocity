@@ -64,3 +64,8 @@ for ext in ("pdf", "png"):
     out = os.path.join(RES, f"relaxation.{ext}")
     fig.savefig(out, facecolor=SURF, dpi=170)
     print("[saved]", out)
+
+# How this was run (2026-09-13):
+#   <venv-python> make_relaxation_fig.py
+# Re-renders relaxation.{pdf,png} from relaxation_results/*.npy; needs
+# ess_pilot_results/ess_pilot.csv for the null band. No chains re-run.

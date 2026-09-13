@@ -202,3 +202,11 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# How this was run (2026-09-05, the overnight batch):
+#   cd Hypergraph_GroupReciprocity/experiments/extended_theta_sweep
+#   caffeinate -i <venv-python> run_overnight.py > overnight.log 2>&1
+# Env knobs: STAGES=ABCD (default; A=null dup stats, B=wiki/radoslaw/higgs
+# sweeps, C=twitter 160-sweep rerun, D=enron 120-sweep rerun), WORKERS=6,
+# SMOKE=1 for a minutes-long dry run. Merges into extended_sweeps.csv and
+# syncs CSVs/PDFs to ../../results/extended_theta_sweep/.

@@ -47,3 +47,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# How this was run (2026-09-13):
+#   cd Hypergraph_GroupReciprocity/experiments && mkdir -p relaxation_results
+#   caffeinate -i <venv-python> relaxation_traces.py > relaxation_results/run.log 2>&1
+# No CLI arguments (datasets/N_SWEEPS are constants at top). ~35 min.
+# Outputs: relaxation_results/relax_<dataset>_<real|fill>.npy + meta.csv.

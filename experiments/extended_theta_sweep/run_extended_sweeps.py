@@ -279,3 +279,10 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# How this was run (2026-09-04 original sequential sweep):
+#   cd Hypergraph_GroupReciprocity/experiments/extended_theta_sweep
+#   <venv-python> run_extended_sweeps.py
+# No CLI arguments. NOTE: the final paper numbers were produced by
+# run_overnight.py (parallel driver importing this module); this file remains
+# the reference implementation + plotting/loader library.

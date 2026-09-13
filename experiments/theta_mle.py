@@ -132,3 +132,10 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# How this was run (2026-09-08):
+#   cd Hypergraph_GroupReciprocity/experiments && mkdir -p theta_mle_results
+#   caffeinate -i <venv-python> theta_mle.py > theta_mle_results/run.log 2>&1
+# No CLI arguments; theta_hat per dataset is read from
+# ../results/extended_theta_sweep/extended_sweeps.csv. ~4 h total (enron ~1 h).
+# Outputs: theta_mle_results/theta_mle.csv (incremental per dataset).

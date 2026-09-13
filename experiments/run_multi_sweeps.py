@@ -233,3 +233,7 @@ if __name__ == "__main__":
     part1()
     part2()
     print("\nDONE", flush=True)
+
+# How this was run (2026-09 earlier sweeps; superseded by extended_theta_sweep):
+#   cd Hypergraph_GroupReciprocity/experiments && <venv-python> run_multi_sweeps.py
+# congress needs CONGRESS_DIR, dblp needs DBLP_MAT env vars; others bundled.
