@@ -19,7 +19,7 @@ MEASURES (event-weighted / "micro" unless noted; all in [0,1])
       r1_support = Sum_T q 1{q=k}           / Sum_T q
       r2_support = Sum_T q (q-1)/(k-1)      / Sum_T q
 
-  multiplicity-aware (md SS10-12; denominator |E| = Sum_T M_T = #events):
+  multiplicity-aware (denominator |E| = Sum_T M_T = #events):
       s1_multi = Sum_T Sum_i min(m_i, M_T - m_i)            / |E|
       r1_multi = Sum_T k_T min_i m_i                        / |E|
       r2_multi = Sum_T (2/(k_T-1)) Sum_{i<j} min(m_i, m_j)  / |E|

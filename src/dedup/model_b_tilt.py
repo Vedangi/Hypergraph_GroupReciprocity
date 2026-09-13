@@ -1,29 +1,24 @@
-"""model_b_tilt.py  --  Projection-fixed exponential-tilt generative model (Model B):
-the thesis-carrying generator. Dial theta -> group reciprocity moves, while the
-directed projection (hence graph/dyadic reciprocity) stays EXACTLY fixed.
+"""model_b_tilt.py  --  Projection-fixed exponential distribution:
 
-IDEA
-  * Fix a directed projection pi (each sender's recipient multiset). Every hypergraph
-    we consider is a regrouping of the SAME pi -> graph reciprocity is constant.
-  * Put a Gibbs / exponential-family distribution over these regroupings:
+MAIN IDEA
+  * Fix a directed projection pi (each sender's recipient multiset). 
+  * Define an exponential distribution:
         P_theta(H)  ∝  exp( theta * Phi(H) )
-    with reciprocity sufficient statistic
-        Phi(H) = sum over exact teams N of p_e(N) * (p_e(N) - 1)      (r2/pairwise numerator)
-    (p_e(N) = # DISTINCT senders whose event has node set exactly N.)
-  * theta = 0  -> uniform over same-projection regroupings = the projection-preserving
-    NULL. theta > 0 favors reciprocal groupings; theta < 0 anti-reciprocal.
+    with team reciprocity parameter Phi(H) 
 
-SAMPLING (Metropolis on 2-switches -- generalizes shuffle_pairwise_by_sender):
-  propose a within-sender 2-switch (swap a recipient between two of a sender's events;
-  preserves that sender's recipient multiset = pi), accept with prob min(1, exp(theta*dPhi)).
-  The unknown normalizer Z cancels (only the ratio exp(theta*dPhi) is used). theta=0
-  -> always accept -> the uniform null shuffle.
+    (p_e(N) = # DISTINCT senders whose event has node set exactly N.)
+  * theta = 0  -> uniform over same-projection regroupings
+    theta > 0 favors reciprocal groupings; theta < 0 anti-reciprocal.
+
+SAMPLING 
+  propose a within-sender 2-swap
+  accept the swap with a probability
+  make the swap and transition to the next state
 
 GUARANTEES
-  * graph reciprocity is CONSTANT for all theta (every state shares pi).
+  * graph reciprocity is CONSTANT for all theta
   * E_theta[Phi] is monotone non-decreasing in theta  (d/dtheta E[Phi] = Var(Phi) >= 0).
 
-Phi is maintained INCREMENTALLY: a 2-switch touches only 4 teams, so dPhi is O(1).
 
 Usage:
     python model_b_tilt.py                      # demo sweep + figure
