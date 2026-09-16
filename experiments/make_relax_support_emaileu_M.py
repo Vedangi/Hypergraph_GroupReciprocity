@@ -50,7 +50,7 @@ handles = [Line2D([], [], color=C_REAL, lw=2, label="start: dedup observed"),
            Line2D([], [], color=C_FILL, lw=2, label="start: randomized fill"),
            plt.Rectangle((0, 0), 1, 1, color=GRID, alpha=0.55,
                          label="tail mean ± 2 sd")]
-axes[2].legend(handles=handles, fontsize=7, frameon=False,
+axes[1].legend(handles=handles, fontsize=7, frameon=False,
                labelcolor=BODY, loc="upper right", handlelength=1.6)
 fig.suptitle(f"{LABEL}: support-measure relaxation from the deduplicated "
              "hypergraph (M-weighted, θ = 0, 3 ≤ k ≤ 25)",
