@@ -39,7 +39,7 @@ for ax, (mname, off) in zip(axes, [("R_any", 0), ("R_part", 1),
         x = np.arange(trs[kind].shape[0])
         ax.plot(x, trs[kind][:, off], color=col, lw=1.6)
     obs = trs["real"][0, off]
-    ax.text(0.6, obs, f"{obs:.3f}", fontsize=7, color=MUTED, va="center")
+    ax.text(0.6, obs, f"observed (real network): {obs:.3f}", fontsize=7, color=MUTED, va="center")
     ax.set_xscale("symlog", linthresh=2)
     ax.set_xlim(0, trs["real"].shape[0] - 1)
     ax.set_xticks([0, 2, 10, 50, 300])
@@ -51,7 +51,7 @@ handles = [Line2D([], [], color=C_REAL, lw=2, label="start: dedup observed"),
            plt.Rectangle((0, 0), 1, 1, color=GRID, alpha=0.55,
                          label="tail mean ± 2 sd")]
 axes[1].legend(handles=handles, fontsize=7, frameon=False,
-               labelcolor=BODY, loc="upper right", handlelength=1.6)
+               labelcolor=BODY, loc="center right", handlelength=1.6)
 fig.suptitle(f"{LABEL}: support-measure relaxation from the deduplicated "
              "hypergraph (M-weighted, θ = 0, 3 ≤ k ≤ 25)",
              fontsize=10.5, color=INK)
