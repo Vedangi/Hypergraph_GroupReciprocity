@@ -78,7 +78,7 @@ def main():
                Line2D([], [], color=BODY, lw=1.1, ls="--", alpha=0.7,
                       label="p-weighted"),
                plt.Rectangle((0, 0), 1, 1, color=GRID, alpha=0.55,
-                             label="tail mean ± 2 sd")]
+                             label="null mean ± 2 sd (post burn-in)")]
     axes[2].legend(handles=handles, fontsize=6.8, frameon=False,
                    labelcolor=BODY, loc="upper right", handlelength=1.6)
     fig.suptitle("email-Eu: support-measure relaxation from the deduplicated "

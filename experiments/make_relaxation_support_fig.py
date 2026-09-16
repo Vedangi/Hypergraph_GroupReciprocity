@@ -57,7 +57,7 @@ for mname, off in MEASURES.items():
         Line2D([], [], color=BODY, lw=1.1, ls="--", alpha=0.7,
                label=r"p-weighted (support of state)"),
         plt.Rectangle((0, 0), 1, 1, color=GRID, alpha=0.55,
-                      label="tail mean ± 2 sd")]
+                      label="null mean ± 2 sd (post burn-in)")]
     axes.flat[-1].legend(handles=handles, fontsize=8, frameon=False,
                          labelcolor=BODY, loc="center left")
     for ax in axes[1, :3]:
