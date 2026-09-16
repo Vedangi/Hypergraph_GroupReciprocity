@@ -46,18 +46,17 @@ for ax, (mname, off) in zip(axes, [("R_any", 0), ("R_part", 1),
     ax.set_xlim(0, trs["real"].shape[0] - 1)
     ax.set_xticks([0, 2, 10, 50, 300])
     ax.set_xticklabels(["0", "2", "10", "50", "300"])
-    ax.set_title(NICE[mname], fontsize=15, color=INK, pad=4)
+    ax.set_title(f"{NICE[mname]} — {LABEL}", fontsize=15, color=INK, pad=4)
     ax.set_xlabel("sweeps", fontsize=12, color=BODY)
 handles = [Line2D([], [], color=C_REAL, lw=2, label="start: dedup observed"),
            Line2D([], [], color=C_FILL, lw=2, label="start: randomized fill"),
            plt.Rectangle((0, 0), 1, 1, color=GRID, alpha=0.55,
-                         label="null mean ± 2 sd (post burn-in)")]
-fig.legend(handles=handles, fontsize=12, frameon=False,
-           labelcolor=BODY, loc="lower center", ncol=3,
-           handlelength=1.6, bbox_to_anchor=(0.5, -0.02))
+                         label="null mean ± 2 sd")]
+axes[1].legend(handles=handles, fontsize=9.5, frameon=False,
+                   labelcolor=BODY, loc="center", handlelength=1.5)
 fig.suptitle("email-Eu: support-measure relaxation from the deduplicated hypergraph",
              fontsize=15, color=INK)
-fig.tight_layout(rect=(0, 0.07, 1, 0.92))
+fig.tight_layout(rect=(0, 0, 1, 0.92))
 for ext in ("pdf", "png"):
     out = os.path.join(RES, f"relaxation_support_{KEY}_M.{ext}")
     fig.savefig(out, facecolor=SURF, dpi=170)

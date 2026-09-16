@@ -29,6 +29,7 @@ import ess_pilot as EP
 import support_reciprocity as SR
 
 OUT = os.path.join(HERE, "support_beta_results")
+WORKERS = int(os.environ.get("WORKERS", "6"))
 os.makedirs(OUT, exist_ok=True)
 BETAS = [-1.0, -0.5, 0.0, 0.5, 1.0, 2.0, 3.0, 5.0, 8.0]
 N_SWEEPS, N_CHAINS, BURN = 100, 4, 0.5
@@ -155,9 +156,11 @@ def main(key="emaileu"):
                           start, 500 + 37 * bi + 11 * c, len(dd)))
     rows = []
     t0 = time.time()
-    with ProcessPoolExecutor(6) as ex:
+    part = os.path.join(OUT, f"beta_sweep_{key}_chains.csv")
+    with ProcessPoolExecutor(WORKERS) as ex:
         for r_ in ex.map(_job, tasks):
             rows.append(r_)
+            pd.DataFrame(rows).to_csv(part, index=False)   # survives a kill
             print(f"  beta={r_['beta']:+.1f} {r_['kind']:4s} "
                   f"R_part={r_['R_part']:.4f}  ({time.time()-t0:.0f}s)",
                   flush=True)
