@@ -22,7 +22,7 @@ NICE = {"R_any": r"$R^{\rm any}_{\rm team}$",
 
 trs = {k: np.load(os.path.join(RES, f"relax_{KEY}_{k}.npy"))
        for k in ("real", "fill")}
-fig, axes = plt.subplots(1, 3, figsize=(9.6, 2.9))
+fig, axes = plt.subplots(1, 3, figsize=(11.8, 3.5))
 fig.patch.set_facecolor(SURF)
 for ax, (mname, off) in zip(axes, [("R_any", 0), ("R_part", 1),
                                    ("R_all", 2)]):
@@ -31,7 +31,7 @@ for ax, (mname, off) in zip(axes, [("R_any", 0), ("R_part", 1),
         ax.spines[side].set_visible(False)
     for side in ("left", "bottom"):
         ax.spines[side].set_color(GRID)
-    ax.tick_params(labelsize=7.5, colors=MUTED, length=0, which="both")
+    ax.tick_params(labelsize=11, colors=MUTED, length=0, which="both")
     tail = np.concatenate([trs[k][100:, off] for k in ("real", "fill")])
     ax.axhspan(tail.mean() - 2 * tail.std(), tail.mean() + 2 * tail.std(),
                color=GRID, alpha=0.55, lw=0)
@@ -39,23 +39,25 @@ for ax, (mname, off) in zip(axes, [("R_any", 0), ("R_part", 1),
         x = np.arange(trs[kind].shape[0])
         ax.plot(x, trs[kind][:, off], color=col, lw=1.6)
     obs = trs["real"][0, off]
-    ax.text(0.6, obs, f"observed (real network): {obs:.3f}", fontsize=7, color=MUTED, va="center")
+    ax.text(0.97, 0.9, f"observed (real network): {obs:.3f}",
+            transform=ax.transAxes, fontsize=11.5, color=MUTED,
+            ha="right", va="center")
     ax.set_xscale("symlog", linthresh=2)
     ax.set_xlim(0, trs["real"].shape[0] - 1)
     ax.set_xticks([0, 2, 10, 50, 300])
     ax.set_xticklabels(["0", "2", "10", "50", "300"])
-    ax.set_title(NICE[mname], fontsize=10, color=INK, pad=4)
-    ax.set_xlabel("sweeps", fontsize=8, color=BODY)
+    ax.set_title(NICE[mname], fontsize=15, color=INK, pad=4)
+    ax.set_xlabel("sweeps", fontsize=12, color=BODY)
 handles = [Line2D([], [], color=C_REAL, lw=2, label="start: dedup observed"),
            Line2D([], [], color=C_FILL, lw=2, label="start: randomized fill"),
            plt.Rectangle((0, 0), 1, 1, color=GRID, alpha=0.55,
                          label="null mean ± 2 sd (post burn-in)")]
-axes[2].legend(handles=handles, fontsize=7, frameon=False,
-               labelcolor=BODY, loc="center right", handlelength=1.6)
-fig.suptitle(f"{LABEL}: support-measure relaxation from the deduplicated "
-             "hypergraph (M-weighted, θ = 0, 3 ≤ k ≤ 25)",
-             fontsize=10.5, color=INK)
-fig.tight_layout(rect=(0, 0, 1, 0.94))
+fig.legend(handles=handles, fontsize=12, frameon=False,
+           labelcolor=BODY, loc="lower center", ncol=3,
+           handlelength=1.6, bbox_to_anchor=(0.5, -0.02))
+fig.suptitle("Enron: support-measure relaxation from the deduplicated hypergraph",
+             fontsize=15, color=INK)
+fig.tight_layout(rect=(0, 0.07, 1, 0.92))
 for ext in ("pdf", "png"):
     out = os.path.join(RES, f"relaxation_support_{KEY}_M.{ext}")
     fig.savefig(out, facecolor=SURF, dpi=170)
