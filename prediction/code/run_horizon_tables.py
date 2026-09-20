@@ -38,6 +38,10 @@ def fit_score(Xtr, ytr, Xte, model_name):
 
 
 LEAVES_GRID = (15, 31, 63)
+# early-stopping metric for LightGBM: "average_precision" (default) or
+# "binary_logloss" (smoother on rare-positive labels)
+ES_METRIC = os.environ.get("ES_METRIC", "average_precision")
+ES_PATIENCE = int(os.environ.get("ES_PATIENCE", "100"))
 C_GRID = (0.1, 1.0, 10.0)
 
 
@@ -68,8 +72,8 @@ def fit_score_tuned(Xtr, ytr, Xva, yva, Xfit, yfit, Xte, model_name):
     best = (-1, None, None)
     for L in LEAVES_GRID:
         m = lgb.LGBMClassifier(n_estimators=2000, num_leaves=L, **base)
-        m.fit(Xtr, ytr, eval_set=[(Xva, yva)], eval_metric="average_precision",
-              callbacks=[lgb.early_stopping(100, verbose=False)])
+        m.fit(Xtr, ytr, eval_set=[(Xva, yva)], eval_metric=ES_METRIC,
+              callbacks=[lgb.early_stopping(ES_PATIENCE, verbose=False)])
         v = ap(yva, m.predict_proba(Xva)[:, 1])
         if v > best[0]:
             best = (v, L, int(m.best_iteration_ or 2000))
@@ -152,7 +156,13 @@ def main():
             for mname in MODELS:
                 t1 = time.time()
                 chosen = {}
-                if a.tune and len(np.unique(y_trn)) == 2 and len(np.unique(y_val)) == 2:
+                can_tune = (len(np.unique(y_trn)) == 2
+                            and len(np.unique(y_val)) == 2)
+                if a.tune and not can_tune:
+                    print(f"  h={h:g} {label:14s} {mname:8s} validation block "
+                          f"unusable (n_val={int(va_l.sum())}) -> untuned "
+                          f"defaults", flush=True)
+                if a.tune and can_tune:
                     sA, pa = fit_score_tuned(
                         frame.loc[tr_l, A].to_numpy(), y_trn,
                         frame.loc[va_l, A].to_numpy(), y_val,
@@ -178,7 +188,9 @@ def main():
                            PR_A=apA, PR_C=apC, dPR=apC - apA,
                            dPR_ci_low=lo, dPR_ci_high=hi,
                            ROC_A=roc_auc_score(y_te, sA),
-                           ROC_C=roc_auc_score(y_te, sC), tuned=bool(a.tune),
+                           ROC_C=roc_auc_score(y_te, sC),
+                           n_val=int(va_l.sum()),
+                           tuned=bool(a.tune and can_tune),
                            **chosen)
                 for bname, lo_k, hi_k in BUCKETS:
                     m = (k_te >= lo_k) & (k_te <= hi_k)
