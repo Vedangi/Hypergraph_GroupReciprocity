@@ -37,6 +37,49 @@ def fit_score(Xtr, ytr, Xte, model_name):
     return model.predict_proba(Xte)[:, 1]
 
 
+LEAVES_GRID = (15, 31, 63)
+C_GRID = (0.1, 1.0, 10.0)
+
+
+def fit_score_tuned(Xtr, ytr, Xva, yva, Xfit, yfit, Xte, model_name):
+    """Select hyperparameters on the validation block only, then refit on
+    train+val and score test.  LightGBM: early stopping on validation AP +
+    num_leaves grid; LogReg: C grid.  Returns (scores, chosen-params dict)."""
+    if model_name == "LogReg":
+        from sklearn.linear_model import LogisticRegression
+        best = (-1, None)
+        for C in C_GRID:
+            sc = StandardScaler().fit(Xtr)
+            m = LogisticRegression(max_iter=2000, class_weight="balanced", C=C)
+            m.fit(sc.transform(Xtr), ytr)
+            v = ap(yva, m.predict_proba(sc.transform(Xva))[:, 1])
+            if v > best[0]:
+                best = (v, C)
+        sc = StandardScaler().fit(Xfit)
+        m = LogisticRegression(max_iter=2000, class_weight="balanced",
+                               C=best[1]).fit(sc.transform(Xfit), yfit)
+        return m.predict_proba(sc.transform(Xte))[:, 1], {"C": best[1],
+                                                          "val_ap": best[0]}
+    import lightgbm as lgb
+    base = dict(learning_rate=0.03, min_child_samples=30, subsample=0.85,
+                subsample_freq=1, colsample_bytree=0.9,
+                class_weight="balanced", random_state=7, n_jobs=-1,
+                verbosity=-1)
+    best = (-1, None, None)
+    for L in LEAVES_GRID:
+        m = lgb.LGBMClassifier(n_estimators=2000, num_leaves=L, **base)
+        m.fit(Xtr, ytr, eval_set=[(Xva, yva)], eval_metric="average_precision",
+              callbacks=[lgb.early_stopping(100, verbose=False)])
+        v = ap(yva, m.predict_proba(Xva)[:, 1])
+        if v > best[0]:
+            best = (v, L, int(m.best_iteration_ or 2000))
+    m = lgb.LGBMClassifier(n_estimators=best[2], num_leaves=best[1], **base)
+    m.fit(Xfit, yfit)
+    return m.predict_proba(Xte)[:, 1], {"num_leaves": best[1],
+                                        "n_estimators": best[2],
+                                        "val_ap": best[0]}
+
+
 def ap(y, s):
     return average_precision_score(y, s) if len(np.unique(y)) == 2 else np.nan
 
@@ -67,6 +110,9 @@ def main():
     p.add_argument("--min-recipients", type=int, default=2)
     p.add_argument("--theta", type=float, default=0.5)
     p.add_argument("--out-dir", required=True)
+    p.add_argument("--tune", action="store_true",
+                   help="select LightGBM (early stopping + num_leaves) and "
+                        "LogReg (C) on the validation block, per tier")
     a = p.parse_args()
     os.makedirs(a.out_dir, exist_ok=True)
 
@@ -101,12 +147,29 @@ def main():
                 continue
             k_te = sub["k"].to_numpy()
             eid = sub["eid"].to_numpy()
+            y_trn = frame.loc[tr_l, label].to_numpy()
+            y_val = frame.loc[va_l, label].to_numpy()
             for mname in MODELS:
                 t1 = time.time()
-                sA = fit_score(frame.loc[fit, A].to_numpy(), y_tr,
-                               sub[A].to_numpy(), mname)
-                sC = fit_score(frame.loc[fit, C].to_numpy(), y_tr,
-                               sub[C].to_numpy(), mname)
+                chosen = {}
+                if a.tune and len(np.unique(y_trn)) == 2 and len(np.unique(y_val)) == 2:
+                    sA, pa = fit_score_tuned(
+                        frame.loc[tr_l, A].to_numpy(), y_trn,
+                        frame.loc[va_l, A].to_numpy(), y_val,
+                        frame.loc[fit, A].to_numpy(), y_tr,
+                        sub[A].to_numpy(), mname)
+                    sC, pc = fit_score_tuned(
+                        frame.loc[tr_l, C].to_numpy(), y_trn,
+                        frame.loc[va_l, C].to_numpy(), y_val,
+                        frame.loc[fit, C].to_numpy(), y_tr,
+                        sub[C].to_numpy(), mname)
+                    chosen = {f"tuneA_{k}": v for k, v in pa.items()}
+                    chosen.update({f"tuneC_{k}": v for k, v in pc.items()})
+                else:
+                    sA = fit_score(frame.loc[fit, A].to_numpy(), y_tr,
+                                   sub[A].to_numpy(), mname)
+                    sC = fit_score(frame.loc[fit, C].to_numpy(), y_tr,
+                                   sub[C].to_numpy(), mname)
                 apA, apC = ap(y_te, sA), ap(y_te, sC)
                 lo, hi = cluster_boot_ci(y_te, sA, sC, eid)
                 row = dict(dataset=a.dataset, horizon=h, label=label,
@@ -115,7 +178,8 @@ def main():
                            PR_A=apA, PR_C=apC, dPR=apC - apA,
                            dPR_ci_low=lo, dPR_ci_high=hi,
                            ROC_A=roc_auc_score(y_te, sA),
-                           ROC_C=roc_auc_score(y_te, sC))
+                           ROC_C=roc_auc_score(y_te, sC), tuned=bool(a.tune),
+                           **chosen)
                 for bname, lo_k, hi_k in BUCKETS:
                     m = (k_te >= lo_k) & (k_te <= hi_k)
                     row[f"n_{bname}"] = int(m.sum())
@@ -136,7 +200,10 @@ def main():
     # markdown tables, one per model, Table-14 layout
     df = pd.DataFrame(out)
     md = [f"# {a.dataset}: split {a.train_q:.2f}/{a.val_q-a.train_q:.2f}/"
-          f"{1-a.val_q:.2f}, fixed features (|A|={len(A)}, |C|={len(C)})\n"]
+          f"{1-a.val_q:.2f}, fixed features (|A|={len(A)}, |C|={len(C)}), "
+          + ("hyperparameters selected on validation (LightGBM early "
+             "stopping + num_leaves; LogReg C), per tier"
+             if a.tune else "untuned defaults") + "\n"]
     for mname in MODELS:
         md.append(f"\n## {mname}\n")
         for label in LABELS:
@@ -168,3 +235,4 @@ if __name__ == "__main__":
 #   <lgbm-python> run_horizon_tables.py --dataset dnc     --horizons 1 3 7   (same flags)
 #   twitter: --horizons 7 30 60  (pending hypergraph-construction decision)
 # Outputs: <out-dir>/<dataset>_horizon_tables.{csv,md}
+# Tuned variant (2026-09-20): add --tune and --out-dir ../results/split_50_20_30_tuned
