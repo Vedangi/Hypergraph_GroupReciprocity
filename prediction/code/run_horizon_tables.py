@@ -88,20 +88,27 @@ def ap(y, s):
     return average_precision_score(y, s) if len(np.unique(y)) == 2 else np.nan
 
 
-def cluster_boot_ci(y, sA, sC, eid, n=N_BOOT, seed=11):
-    """Paired bootstrap resampling whole focal events."""
+def cluster_boot_ci(y, sA, sC, eid, k=None, n=N_BOOT, seed=11):
+    """Paired bootstrap resampling whole focal events. Returns the 95% CI of
+    the pooled dPR and, if team sizes ``k`` are given, of dPR within each
+    size bucket -- all from the same resamples."""
     rng = np.random.default_rng(seed)
     uniq, inv = np.unique(eid, return_inverse=True)
     groups = [np.where(inv == g)[0] for g in range(len(uniq))]
-    deltas = []
+    masks = ({b[0]: (k >= b[1]) & (k <= b[2]) for b in BUCKETS}
+             if k is not None else {})
+    deltas = {"pooled": [], **{b: [] for b in masks}}
     for _ in range(n):
         pick = rng.integers(len(groups), size=len(groups))
         idx = np.concatenate([groups[g] for g in pick])
-        if len(np.unique(y[idx])) < 2:
-            continue
-        deltas.append(ap(y[idx], sC[idx]) - ap(y[idx], sA[idx]))
-    return (np.percentile(deltas, [2.5, 97.5]) if deltas
-            else (np.nan, np.nan))
+        if len(np.unique(y[idx])) == 2:
+            deltas["pooled"].append(ap(y[idx], sC[idx]) - ap(y[idx], sA[idx]))
+        for b, m in masks.items():
+            j = idx[m[idx]]
+            if len(j) and len(np.unique(y[j])) == 2:
+                deltas[b].append(ap(y[j], sC[j]) - ap(y[j], sA[j]))
+    return {b: (tuple(np.percentile(d, [2.5, 97.5])) if len(d) >= 20
+                else (np.nan, np.nan)) for b, d in deltas.items()}
 
 
 def main():
@@ -189,7 +196,8 @@ def main():
                     sC = fit_score(frame.loc[fit, C].to_numpy(), y_tr,
                                    sub[C].to_numpy(), mname)
                 apA, apC = ap(y_te, sA), ap(y_te, sC)
-                lo, hi = cluster_boot_ci(y_te, sA, sC, eid)
+                cis = cluster_boot_ci(y_te, sA, sC, eid, k=k_te)
+                lo, hi = cis["pooled"]
                 row = dict(dataset=a.dataset, horizon=h, label=label,
                            model=mname, n_train=int(fit.sum()),
                            n_total=int((tr_l | va_l | te_l).sum()),
@@ -207,6 +215,7 @@ def main():
                     row[f"dPR_{bname}"] = (ap(y_te[m], sC[m]) - ap(y_te[m], sA[m])
                                            if m.sum() and len(np.unique(y_te[m])) == 2
                                            else np.nan)
+                    row[f"dPR_{bname}_ci_low"], row[f"dPR_{bname}_ci_high"] = cis[bname]
                 out.append(row)
                 print(f"  h={h:g} {label:14s} {mname:8s} n={len(sub):7,d} "
                       f"rate={row['rate']:.3f} PR-A={apA:.3f} PR-C={apC:.3f} "
@@ -237,8 +246,13 @@ def main():
                 md.append(f"| {r.horizon:g} | {r.n_total:,} | {r.n_test:,} | {r.rate:.3f} | "
                           f"{r.PR_A:.3f} | {r.PR_C:.3f} | {r.dPR:+.3f} "
                           f"[{r.dPR_ci_low:+.3f}, {r.dPR_ci_high:+.3f}] | "
-                          f"{r['dPR_k=3-5']:+.3f} | {r['dPR_k=6-10']:+.3f} | "
-                          f"{r['dPR_k>=11']:+.3f} |")
+                          + " | ".join(
+                              f"{r['dPR_'+b]:+.3f}"
+                              + ("*" if (r['dPR_'+b+'_ci_low'] > 0
+                                         or r['dPR_'+b+'_ci_high'] < 0) else "")
+                              for b in ("k=3-5", "k=6-10", "k>=11")) + " |")
+    md.append("\n\\* bucket 95% CI (event-clustered paired bootstrap, same "
+              "resamples as the pooled CI) excludes 0\n")
     with open(os.path.join(a.out_dir, f"{a.dataset}_horizon_tables.md"), "w") as f:
         f.write("\n".join(md) + "\n")
     print(f"\nDONE {a.dataset} in {(time.time()-t0)/60:.1f} min", flush=True)
