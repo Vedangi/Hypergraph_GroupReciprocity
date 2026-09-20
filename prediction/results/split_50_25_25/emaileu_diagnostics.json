@@ -1,0 +1,46 @@
+{
+  "dataset": "emaileu",
+  "theta": 0.5,
+  "horizons": [
+    7.0,
+    30.0
+  ],
+  "unit": "day",
+  "n_events": 209005,
+  "n_samples": 139453,
+  "min_recipients": 2,
+  "max_size": 25,
+  "train_q": 0.5,
+  "val_q": 0.75,
+  "train_cut": 23784755.0,
+  "validation_cut": 37000291.0,
+  "graph_features": [
+    "f_fwd",
+    "f_rev",
+    "f_recip",
+    "f_balance",
+    "f_pair_pErec",
+    "f_pair_latency",
+    "f_outdeg_s",
+    "f_indeg_v",
+    "f_cn",
+    "f_status_s",
+    "f_status_v",
+    "f_status_gap",
+    "f_2step_sv",
+    "f_2step_vs",
+    "f_rc",
+    "f_mn_in",
+    "f_mn_out",
+    "f_jaccard_in",
+    "f_jaccard_out",
+    "f_adamic_adar"
+  ],
+  "hypergraph_features": [
+    "h_rsize",
+    "h_team_turntaking",
+    "h_gir",
+    "h_r4_lead",
+    "h_team_leaders"
+  ]
+}
