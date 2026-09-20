@@ -126,13 +126,21 @@ def main():
     rows = pd.DataFrame(LPF.build_causal_rows(events, theta=a.theta))
     if a.min_recipients > 1:
         rows = rows[rows.k >= 1 + a.min_recipients].reset_index(drop=True)
-    train_cut, val_cut = LPE.temporal_cutoffs(rows["t"].to_numpy(),
-                                             a.train_q, a.val_q)
+    if a.val_q > a.train_q:
+        train_cut, val_cut = LPE.temporal_cutoffs(rows["t"].to_numpy(),
+                                                 a.train_q, a.val_q)
+    else:                                   # two-way split, no validation block
+        train_cut = float(np.quantile(rows["t"].to_numpy(), a.train_q))
+        val_cut = train_cut
+        if a.tune:
+            print("no validation block (val_q <= train_q): --tune ignored",
+                  flush=True)
+            a.tune = False
     t_end = events[-1][2]
     A = list(LPF.GRAPH_FEATURES)
     C = A + list(LPF.HYPERGRAPH_FEATURES)
     print(f"{a.dataset}: {len(events):,} events, {len(rows):,} rows, "
-          f"split {a.train_q:.2f}/{a.val_q-a.train_q:.2f}/{1-a.val_q:.2f}, "
+          f"split {a.train_q:.2f}/{max(a.val_q-a.train_q,0):.2f}/{1-max(a.val_q,a.train_q):.2f}, "
           f"|A|={len(A)} |C|={len(C)}  (built in {time.time()-t0:.0f}s)",
           flush=True)
 
@@ -184,6 +192,7 @@ def main():
                 lo, hi = cluster_boot_ci(y_te, sA, sC, eid)
                 row = dict(dataset=a.dataset, horizon=h, label=label,
                            model=mname, n_train=int(fit.sum()),
+                           n_total=int((tr_l | va_l | te_l).sum()),
                            n_test=len(sub), rate=float(y_te.mean()),
                            PR_A=apA, PR_C=apC, dPR=apC - apA,
                            dPR_ci_low=lo, dPR_ci_high=hi,
@@ -211,8 +220,8 @@ def main():
 
     # markdown tables, one per model, Table-14 layout
     df = pd.DataFrame(out)
-    md = [f"# {a.dataset}: split {a.train_q:.2f}/{a.val_q-a.train_q:.2f}/"
-          f"{1-a.val_q:.2f}, fixed features (|A|={len(A)}, |C|={len(C)}), "
+    md = [f"# {a.dataset}: split {a.train_q:.2f}/{max(a.val_q-a.train_q,0):.2f}/"
+          f"{1-max(a.val_q,a.train_q):.2f}, fixed features (|A|={len(A)}, |C|={len(C)}), "
           + ("hyperparameters selected on validation (LightGBM early "
              "stopping + num_leaves; LogReg C), per tier"
              if a.tune else "untuned defaults") + "\n"]
@@ -222,10 +231,10 @@ def main():
             s = df[(df.model == mname) & (df.label == label)]
             if not len(s):
                 continue
-            md.append(f"\n**{label}**\n\n| h | n_test | rate | PR-A | PR-C | ΔPR "
-                      "[95% CI] | k=3–5 | k=6–10 | k≥11 |\n|---|---|---|---|---|---|---|---|---|")
+            md.append(f"\n**{label}**\n\n| h | n (all rows) | n_test | rate | PR-A | PR-C | ΔPR "
+                      "[95% CI] | k=3–5 | k=6–10 | k≥11 |\n|---|---|---|---|---|---|---|---|---|---|")
             for _, r in s.iterrows():
-                md.append(f"| {r.horizon:g} | {r.n_test:,} | {r.rate:.3f} | "
+                md.append(f"| {r.horizon:g} | {r.n_total:,} | {r.n_test:,} | {r.rate:.3f} | "
                           f"{r.PR_A:.3f} | {r.PR_C:.3f} | {r.dPR:+.3f} "
                           f"[{r.dPR_ci_low:+.3f}, {r.dPR_ci_high:+.3f}] | "
                           f"{r['dPR_k=3-5']:+.3f} | {r['dPR_k=6-10']:+.3f} | "
@@ -248,3 +257,5 @@ if __name__ == "__main__":
 #   twitter: --horizons 7 30 60  (pending hypergraph-construction decision)
 # Outputs: <out-dir>/<dataset>_horizon_tables.{csv,md}
 # Tuned variant (2026-09-20): add --tune and --out-dir ../results/split_50_20_30_tuned
+# 70-30 split (no validation block, untuned): --train-q 0.7 --val-q 0.7 --out-dir ../results/split_70_30
+# DNC tuned horizons rerun with 1 3 5 7 (h=7 falls back: empty validation block)
