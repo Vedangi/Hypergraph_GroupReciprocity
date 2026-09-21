@@ -1,6 +1,6 @@
 # prediction — reciprocation-mode prediction experiments
 
-Temporal datasets only: **email-Eu, Enron, DNC, Twitter (senators)**.
+Temporal datasets only: **email-Eu, Enron, DNC, Twitter (U.S. Congress members)**.
 
 ```
 code/
@@ -31,11 +31,11 @@ Labels: `y_dyad` (control), `y_group_exact` (exact team reconvenes), `y_mode`
 (group vs dyadic reply, among reciprocators). Population: recipients of
 group events, 3 ≤ k ≤ 25; feature history uses the full stream.
 
-**Twitter construction (decided 2026-09-20): `keep`.** Events are senators'
-tweets (Jan 2020 – Jun 2022); recipients = `mentionedUsers` restricted to the
+**Twitter construction (decided 2026-09-20): `keep`.** Events are tweets by
+525 members of the U.S. Congress (427 House, 98 Senate; Jan 2020 – Jun 2022); recipients = `mentionedUsers` restricted to the
 525 observed authors, self-mentions removed, threads not merged. Twitter
 auto-inserts the reply target into `mentionedUsers`; we retain it (as email
-reply headers are retained). Replies to other senators are 2,053 events
+reply headers are retained). Replies to other members are 2,053 events
 (3.2%; 479 group events, 3.0%). The alternative `drop` view (discard those
 tweets) changes no structural number materially (R_some null ratio 13.99x
 vs 14.06x) and, in earlier runs, no prediction gap by more than ~0.01 while

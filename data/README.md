@@ -8,7 +8,7 @@ duplicates kept.
 |---|---|---|---|
 | `fauci` | `fauci/fauci_temporal_hyperedges.csv` | processed from the Fauci email corpus (Benson et al., leopold-nih-foia release) | 408 |
 | `dnc` | `dnc/email-dnc.edges` | KONECT "DNC emails" | 5,200 |
-| `twitter` | `twitter/twitter_observed_min1_events.parquet` | processed mention events from the Twitter follower network crawl | 15,760 |
+| `twitter` | `twitter/twitter_observed_min1_events.parquet` | mention events among 525 U.S. Congress members' accounts (427 House, 98 Senate), Jan 2020 – Jun 2022; tweets collected with snscrape, recipients = `mentionedUsers` restricted to observed members [original source of the tweet table: TO BE CITED] | 15,760 |
 | `enron` | `enron/out.enron` | KONECT "Enron employees" temporal edges | 57,423 |
 | `emaileu` | `emailEu/email-Eu-core-temporal.txt` | SNAP `email-Eu-core-temporal` | (appendix base-measure study) |
 | `radoslaw` | `radoslaw/out.radoslaw_email_email` | KONECT "Manufacturing emails" (Radoslaw Michalski et al.) | 7,906 |

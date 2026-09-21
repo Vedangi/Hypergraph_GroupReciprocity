@@ -16,7 +16,7 @@ INK, BODY, MUTED, GRID, SURF = ("#1a1a19", "#3d3d3a", "#6e6d68",
 C_REAL, C_FILL = "#2a78d6", "#eb6834"
 LABEL = {"fauci": "Fauci email", "wiki": "Wiki talk", "dnc": "DNC email",
          "radoslaw": "Manufacturing email", "higgs": "Higgs Twitter",
-         "twitter": "Twitter (senators)", "enron": "Enron"}
+         "twitter": "Twitter (Congress)", "enron": "Enron"}
 
 meta = pd.read_csv(os.path.join(RES, "meta.csv")).set_index("dataset")
 ess = pd.read_csv(os.path.join(HERE, "ess_pilot_results", "ess_pilot.csv")

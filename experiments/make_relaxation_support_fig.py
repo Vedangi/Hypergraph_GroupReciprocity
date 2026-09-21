@@ -18,7 +18,7 @@ INK, BODY, MUTED, GRID, SURF = ("#1a1a19", "#3d3d3a", "#6e6d68",
 C_REAL, C_FILL = "#2a78d6", "#eb6834"
 LABEL = {"fauci": "Fauci email", "wiki": "Wiki talk", "dnc": "DNC email",
          "radoslaw": "Manufacturing email", "higgs": "Higgs Twitter",
-         "twitter": "Twitter (senators)", "enron": "Enron"}
+         "twitter": "Twitter (Congress)", "enron": "Enron"}
 ORDER = ["fauci", "wiki", "dnc", "radoslaw", "higgs", "twitter", "enron"]
 MEASURES = {"R_any": 0, "R_part": 1, "R_all": 2}   # column offsets; +3 = p-weighted
 NICE = {"R_any": r"$R^{\rm any}_{\rm team}$", "R_part": r"$R^{\rm part}_{\rm team}$",
