@@ -111,6 +111,19 @@ def cluster_boot_ci(y, sA, sC, eid, k=None, n=N_BOOT, seed=11):
                 else (np.nan, np.nan)) for b, d in deltas.items()}
 
 
+def _save(new, a):
+    """Write the CSV; with --merge, combine with the existing file (new
+    horizons replace old rows for the same horizon). Returns the full table."""
+    path = os.path.join(a.out_dir, f"{a.dataset}_horizon_tables.csv")
+    if a.merge and os.path.exists(path):
+        old = pd.read_csv(path)
+        old = old[~old.horizon.isin(new.horizon.unique())]
+        new = pd.concat([old, new], ignore_index=True)
+    new = new.sort_values(["model", "label", "horizon"]).reset_index(drop=True)
+    new.to_csv(path, index=False)
+    return new
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--dataset", required=True)
@@ -121,6 +134,10 @@ def main():
     p.add_argument("--min-recipients", type=int, default=2)
     p.add_argument("--theta", type=float, default=0.5)
     p.add_argument("--out-dir", required=True)
+    p.add_argument("--merge", action="store_true",
+                   help="merge into an existing <dataset>_horizon_tables.csv "
+                        "(rows for the same horizon are replaced) instead "
+                        "of overwriting it")
     p.add_argument("--tune", action="store_true",
                    help="select LightGBM (early stopping + num_leaves) and "
                         "LogReg (C) on the validation block, per tier")
@@ -223,12 +240,10 @@ def main():
                       + "  ".join(f"{b[0]}:{row['dPR_'+b[0]]:+.3f}"
                                   for b in BUCKETS)
                       + f"  ({time.time()-t1:.0f}s)", flush=True)
-        pd.DataFrame(out).to_csv(
-            os.path.join(a.out_dir, f"{a.dataset}_horizon_tables.csv"),
-            index=False)
+        _save(pd.DataFrame(out), a)
 
     # markdown tables, one per model, Table-14 layout
-    df = pd.DataFrame(out)
+    df = _save(pd.DataFrame(out), a)
     md = [f"# {a.dataset}: split {a.train_q:.2f}/{max(a.val_q-a.train_q,0):.2f}/"
           f"{1-max(a.val_q,a.train_q):.2f}, fixed features (|A|={len(A)}, |C|={len(C)}), "
           + ("hyperparameters selected on validation (LightGBM early "
@@ -271,5 +286,7 @@ if __name__ == "__main__":
 #   twitter: --horizons 7 30 60  (pending hypergraph-construction decision)
 # Outputs: <out-dir>/<dataset>_horizon_tables.{csv,md}
 # Tuned variant (2026-09-20): add --tune and --out-dir ../results/split_50_20_30_tuned
+# Extra horizons (2026-09-24): --merge adds new horizons into the existing CSV, e.g.
+#   --dataset emaileu --horizons 2 3 5 10 15 20 --tune --merge --out-dir ../results/split_50_20_30_tuned
 # 70-30 split (no validation block, untuned): --train-q 0.7 --val-q 0.7 --out-dir ../results/split_70_30
 # DNC tuned horizons rerun with 1 3 5 7 (h=7 falls back: empty validation block)

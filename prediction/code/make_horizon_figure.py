@@ -17,13 +17,13 @@ import pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 # ---- edit here: datasets, their horizons (days), panel titles ---------------
-PANELS = [("emaileu", "email-Eu", [1, 7, 30]),
-          ("enron", "Enron", [1, 7, 30]),
-          ("dnc", "DNC", [1, 3, 5]),
-          ("twitter", "Twitter (Congress)", [7, 30, 60])]
-SERIES = [("y_dyad", "any response", "#009490", "^", -0.13),
+PANELS = [("emaileu", "email-Eu", [1, 2, 3, 5, 7, 10, 15, 20, 30]),
+          ("enron", "Enron", [1, 2, 3, 5, 7, 10, 15, 20, 30]),
+          ("dnc", "DNC", [1, 2, 3, 4, 5]),
+          ("twitter", "Twitter (Congress)", [1, 3, 5, 7, 10, 15, 20, 30, 60])]
+SERIES = [("y_dyad", "any response", "#009490", "^", -0.18),
           ("y_group_exact", "exact-team response", "#2a78d6", "o", 0.0),
-          ("y_mode", "group-response mode", "#eb6834", "s", +0.13)]
+          ("y_mode", "group-response mode", "#eb6834", "s", +0.18)]
 # palette validated (dataviz validator: all checks pass, worst CVD dE 11.9);
 # marker shape is the secondary encoding.
 INK, BODY, MUTED, GRID, SURF = ("#1a1a19", "#3d3d3a", "#6e6d68",
@@ -38,7 +38,7 @@ def main():
     p.add_argument("--out", default=None)
     a = p.parse_args()
 
-    fig, axes = plt.subplots(1, 4, figsize=(12.6, 3.3), sharey=True)
+    fig, axes = plt.subplots(1, 4, figsize=(13.6, 3.4), sharey=True)
     fig.patch.set_facecolor(SURF)
     for ax, (key, title, horizons) in zip(axes, PANELS):
         df = pd.read_csv(os.path.join(a.results_dir, f"{key}_horizon_tables.csv"))
@@ -57,13 +57,13 @@ def main():
             x = [pos[h] + dx for h in s.horizon]
             y = s.dPR.to_numpy()
             err = [y - s.dPR_ci_low.to_numpy(), s.dPR_ci_high.to_numpy() - y]
-            ax.errorbar(x, y, yerr=err, color=col, marker=mk, ms=7, lw=2,
-                        elinewidth=1.4, capsize=3, markeredgecolor=SURF,
+            ax.errorbar(x, y, yerr=err, color=col, marker=mk, ms=5.5, lw=1.8,
+                        elinewidth=1.2, capsize=2.5, markeredgecolor=SURF,
                         markeredgewidth=1.0, zorder=3)
         ax.set_xticks(range(len(horizons)))
         ax.set_xticklabels([str(h) for h in horizons])
         ax.set_xlim(-0.45, len(horizons) - 0.55)
-        ax.tick_params(labelsize=12, colors=MUTED, length=0)
+        ax.tick_params(labelsize=10.5, colors=MUTED, length=0)
         ax.set_title(title, fontsize=14, color=INK, pad=6)
         ax.set_xlabel("horizon (days)", fontsize=12.5, color=BODY)
     axes[0].set_ylabel(r"$\Delta$AP  (graph+hypergraph $-$ graph)",
