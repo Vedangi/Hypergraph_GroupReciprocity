@@ -14,6 +14,7 @@ duplicates kept.
 | `radoslaw` | `radoslaw/out.radoslaw_email_email` | KONECT "Manufacturing emails" (Radoslaw Michalski et al.) | 7,906 |
 | `higgs` | `higgs/higgs-activity_time.txt.gz` | SNAP "Higgs Twitter" mention (MT) layer, July 2012 (De Domenico et al. 2013) | 16,381 |
 | `wiki` | `wiki/talk_hyperedges.csv` | processed Simple English Wikipedia talk-page discussions | 927 |
+| `music` | `music/music_df_events.parquet` (+ `artist_nodes.csv.gz` id→name map) | MusicBrainz featuring collaborations, 1970–2027: main artist → featured artists, release date as epoch days (collaboration domain; used for the domain contrast and the LP appendix) | 174,200 |
 
 For pairwise-timestamped sources (emaileu, enron, dnc, radoslaw, higgs) an event is formed by
 merging all recipients a sender addressed at the same timestamp; fauci and

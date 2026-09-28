@@ -42,6 +42,7 @@ DATASETS = {
     "radoslaw": DATA_DIR / "radoslaw/out.radoslaw_email_email",
     "wiki":    DATA_DIR / "wiki/talk_hyperedges.csv",
     "higgs":   DATA_DIR / "higgs/higgs-activity_time.txt.gz",
+    "music":   DATA_DIR / "music/music_df_events.parquet",
 }
 
 
@@ -211,6 +212,17 @@ def load_events_higgs(path, interaction="MT", limit=None):
     return events[:limit] if limit else events
 
 
+def load_events_music(path, limit=None):
+    """MusicBrainz featuring collaborations: main artist -> featured artists,
+    time = epoch days (release date; year-only dates map to Jan 1)."""
+    df = pd.read_parquet(path)
+    rec = df["recipients"].map(lambda x: json.loads(x) if isinstance(x, str) else list(x))
+    events = [(int(s), sorted(int(x) for x in R), int(t))
+              for s, R, t in zip(df["sender"], rec, df["time"])]
+    events.sort(key=lambda e: (e[2], e[0]))
+    return events[:limit] if limit else events
+
+
 # ---------------------------------------------------------------------------
 # optional loaders for non-communication data (files not bundled)
 
@@ -310,6 +322,8 @@ def load_dataset(name, limit=None, max_size=None):
         events = load_events_wiki(path)
     elif name == "higgs":
         events = load_events_higgs(path)
+    elif name == "music":
+        events = load_events_music(path)
     elif name == "dblp":
         mat = os.environ.get("DBLP_MAT")
         if not mat:

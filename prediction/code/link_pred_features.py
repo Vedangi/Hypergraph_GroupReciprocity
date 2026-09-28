@@ -64,6 +64,11 @@ DATASETS = {
         "kind": "twitter", "step": DAY, "unit": "day",
         "default_horizons": (7, 30, 60), "default_theta": 0.5,
     },
+    "music": {
+        "path": ROOT / "data/music/music_df_events.parquet",
+        "kind": "music", "step": 365.0, "unit": "year",  # times are epoch DAYS
+        "default_horizons": (2, 5), "default_theta": 0.5,
+    },
 }
 
 
@@ -228,9 +233,12 @@ def load_dataset(
     elif kind == "congress":
         events = load_events_congress(path, limit=None)
     elif kind == "music":
-        from music_feature_to_df import load_events_music
-        events = load_events_music(
-            str(path), limit=None, max_size=max_size)
+        frame = pd.read_parquet(path)
+        rec = frame["recipients"].map(
+            lambda x: json.loads(x) if isinstance(x, str) else list(x))
+        events = [(int(s), sorted(int(x) for x in R), int(t))
+                  for s, R, t in zip(frame["sender"], rec, frame["time"])]
+        events.sort(key=lambda e: (e[2], e[0]))
     elif kind == "twitter":
         events = load_events_twitter(path, limit=None)
     elif kind == "cordis":
