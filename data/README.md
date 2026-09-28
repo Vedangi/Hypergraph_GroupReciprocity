@@ -14,6 +14,8 @@ duplicates kept.
 | `radoslaw` | `radoslaw/out.radoslaw_email_email` | KONECT "Manufacturing emails" (Radoslaw Michalski et al.) | 7,906 |
 | `higgs` | `higgs/higgs-activity_time.txt.gz` | SNAP "Higgs Twitter" mention (MT) layer, July 2012 (De Domenico et al. 2013) | 16,381 |
 | `wiki` | `wiki/talk_hyperedges.csv` | processed Simple English Wikipedia talk-page discussions | 927 |
+| `congress` | `congress/congress_events.parquet` | U.S. congressional bills 1973–2004 (Fowler; Benson's congress-bills release): sponsor → cosponsors, time = epoch days (collaboration domain) | 73,815 |
+| `dblp` | `dblp/dblp_events.parquet` | DBLP coauthorship (`authors_dblp_hypergraph.mat`): first author → coauthors, static (t = 0) (collaboration domain) | 75,387 |
 | `music` | `music/music_df_events.parquet` (+ `artist_nodes.csv.gz` id→name map) | MusicBrainz featuring collaborations, 1970–2027: main artist → featured artists, release date as epoch days (collaboration domain; used for the domain contrast and the LP appendix) | 174,200 |
 
 For pairwise-timestamped sources (emaileu, enron, dnc, radoslaw, higgs) an event is formed by
@@ -24,7 +26,8 @@ The raw pairwise files are redistributed unchanged from their public sources
 (SNAP: https://snap.stanford.edu/data/, KONECT: http://konect.cc/); please
 cite the original sources alongside this repository.
 
-Non-bundled extras: `load_events_simplices` (Cornell temporal simplex format,
-e.g. coauth-DBLP-full) and `load_events_congress` (congress-bills) support the
-non-communication datasets discussed in the appendix; download those from
-https://www.cs.cornell.edu/~arb/data/.
+The collaboration parquets were exported from the raw sources with the
+loaders `load_events_congress` (congress-bills folder: sponsors.txt /
+Cosponsors.txt / Dates.txt, https://www.cs.cornell.edu/~arb/data/) and
+`load_events_mat` (the DBLP .mat); set `CONGRESS_DIR` / `DBLP_MAT` to rebuild
+from the raw files instead of reading the bundled copies.

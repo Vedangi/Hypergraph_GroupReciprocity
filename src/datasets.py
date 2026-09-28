@@ -43,6 +43,8 @@ DATASETS = {
     "wiki":    DATA_DIR / "wiki/talk_hyperedges.csv",
     "higgs":   DATA_DIR / "higgs/higgs-activity_time.txt.gz",
     "music":   DATA_DIR / "music/music_df_events.parquet",
+    "congress": DATA_DIR / "congress/congress_events.parquet",
+    "dblp":    DATA_DIR / "dblp/dblp_events.parquet",
 }
 
 
@@ -223,8 +225,19 @@ def load_events_music(path, limit=None):
     return events[:limit] if limit else events
 
 
+def load_events_parquet(path, limit=None):
+    """Generic bundled events table: sender, recipients (JSON list), time."""
+    df = pd.read_parquet(path)
+    rec = df["recipients"].map(lambda x: json.loads(x) if isinstance(x, str) else list(x))
+    events = [(int(s), sorted(int(x) for x in R), int(t))
+              for s, R, t in zip(df["sender"], rec, df["time"])]
+    events.sort(key=lambda e: (e[2], e[0]))
+    return events[:limit] if limit else events
+
+
 # ---------------------------------------------------------------------------
-# optional loaders for non-communication data (files not bundled)
+# loaders for the raw collaboration sources (used to build the bundled
+# parquets; CONGRESS_DIR / DBLP_MAT override the bundled copies)
 
 def load_events_simplices(folder, sender="first", max_size=25, limit=None):
     """Cornell temporal simplex format (e.g. coauth-DBLP-full)."""
@@ -326,15 +339,11 @@ def load_dataset(name, limit=None, max_size=None):
         events = load_events_music(path)
     elif name == "dblp":
         mat = os.environ.get("DBLP_MAT")
-        if not mat:
-            raise FileNotFoundError("set DBLP_MAT to the DBLP .mat file (not bundled)")
-        events = load_events_mat(mat)
+        events = load_events_mat(mat) if mat else load_events_parquet(path)
     elif name == "congress":
         folder = os.environ.get("CONGRESS_DIR")
-        if not folder:
-            raise FileNotFoundError(
-                "congress-bills is not bundled; set CONGRESS_DIR to its folder")
-        events = load_events_congress(folder)
+        events = (load_events_congress(folder) if folder
+                  else load_events_parquet(path))
     else:
         raise ValueError(f"Unknown dataset: {name!r}")
     if max_size:
