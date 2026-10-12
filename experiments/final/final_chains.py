@@ -27,9 +27,13 @@ import multi_tilt as MT              # noqa: E402
 
 BINS = (("k3_5", 3, 5), ("k6_10", 6, 10), ("k11_25", 11, 10**9))
 MULTI = ("s1_multi", "r1_multi", "r2_multi")          # R_any^m, R_all^m, R_part^m
-SUPP = ("s1_support", "r1_support", "r2_support")
-MEASURE_COLS = ([f"{m}" for m in MULTI + SUPP]
-                + [f"{m}_{b}" for b, _, _ in BINS for m in MULTI + SUPP])
+SUPP = ("s1_support", "r1_support", "r2_support")  # p-weighted: support of the state
+# M-weighted support measures (the paper's definition): same per-team credit
+# f(p_T), weighted by M_T with denominator |E|; identical on duplicate-free states.
+SUPP_M = ("s1_support_M", "r1_support_M", "r2_support_M")
+ALL_M = MULTI + SUPP + SUPP_M
+MEASURE_COLS = ([f"{m}" for m in ALL_M]
+                + [f"{m}_{b}" for b, _, _ in BINS for m in ALL_M])
 CHECKPOINT_EVERY = 25
 
 
@@ -105,12 +109,14 @@ def snapshot(evs):
             for m in MULTI:
                 num[m + tag] += ts[m] * M
             for m in SUPP:
-                num[m + tag] += ts[m] * q
+                num[m + tag] += ts[m] * q               # p-weighted
+                num[m + "_M" + tag] += ts[m] * M        # M-weighted (paper)
     row = {}
     for col in MEASURE_COLS:
         base, tag = (col.split("_k", 1) + [""])[:2]
         tag = ("_k" + tag) if tag else ""
-        d = den[("M" if "multi" in base else "q") + tag]
+        w = "q" if (base.endswith("_support")) else "M"   # multi and *_support_M use |E|
+        d = den[w + tag]
         row[col] = num[col] / d if d else float("nan")
     return row
 
@@ -234,6 +240,11 @@ if __name__ == "__main__":
     snap = snapshot(_evs_of(ev)); ref = MR.measures(ev, min_k=3)
     for m in MULTI + SUPP:
         assert abs(snap[m] - ref[m]) < 1e-12, m
+    sys.path.insert(0, os.path.join(ROOT, "src", "dedup"))
+    import support_reciprocity as SR
+    sm = SR.support_measures_team(ev, min_k=3, weighting="M")
+    for m, k in (("s1_support_M", "R_any"), ("r2_support_M", "R_part"), ("r1_support_M", "R_all")):
+        assert abs(snap[m] - sm[k]) < 1e-12, m
     # 4) fill start preserves projection; beta != 0 runs
     run_chain({**base, "beta": 2.0, "init": "fill", "sweeps": 3, "out_dir": f"{tmp}/d"})
     shutil.rmtree(tmp)
