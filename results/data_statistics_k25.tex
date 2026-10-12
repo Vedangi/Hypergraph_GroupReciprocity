@@ -1,0 +1,23 @@
+\begin{table*}[t]
+\centering
+\caption{Dataset statistics for the group interactions used in the structural analysis. We retain events with $3\leq k\leq 25$. $M_{\rm all}$ is the number of group events before the upper-size restriction; $M$ and all remaining statistics are computed after filtering. $|E^*|$ is the number of distinct oriented hyperedges, and $|\mathcal{T}|$ is the number of distinct participating teams.}
+\label{tab:dataset-statistics}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llrrrrrrrrrr}
+\toprule
+Domain & Dataset & $|V|$ & $M_{\rm all}$ & $M$ & Retained (\%) & $|E^*|$ & $|\mathcal{T}|$ & Duplicates (\%) & Mean $k$ & $r_{\rm bin}$ & $r_{\rm wt}$ \\
+\midrule
+Communication & Email-Eu & 878 & 36,220 & 35,717 & 98.61 & 14,120 & 11,646 & 60.5 & 4.90 & 0.467 & 0.328 \\
+ & Enron & 28,330 & 66,319 & 57,423 & 86.59 & 39,429 & 36,720 & 31.3 & 6.86 & 0.187 & 0.164 \\
+ & Fauci & 322 & 412 & 408 & 99.03 & 310 & 256 & 24.0 & 4.16 & 0.203 & 0.177 \\
+ & DNC & 807 & 5,252 & 5,200 & 99.01 & 2,789 & 2,112 & 46.4 & 4.08 & 0.371 & 0.356 \\
+ & Radoslaw & 135 & 7,934 & 7,906 & 99.65 & 3,445 & 3,014 & 56.4 & 4.83 & 0.565 & 0.296 \\
+ & Twitter & 525 & 15,776 & 15,760 & 99.90 & 12,453 & 10,667 & 21.0 & 4.27 & 0.380 & 0.336 \\
+\midrule
+Collaboration & Congress-bills & 1,718 & 95,013 & 73,815 & 77.69 & 70,095 & 69,234 & 5.0 & 9.96 & 0.462 & 0.426 \\
+ & DBLP & 103,579 & 75,396 & 75,387 & 99.99 & 70,297 & 69,182 & 6.8 & 3.94 & 0.063 & 0.056 \\
+ & Music & 155,012 & 174,223 & 174,200 & 99.99 & 129,299 & 127,306 & 25.8 & 3.48 & 0.064 & 0.060 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table*}
