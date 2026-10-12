@@ -6,14 +6,14 @@
  "filter": "k3-25",
  "dedup_start": false,
  "seed": 250119486,
- "sweeps": 1000,
+ "sweeps": 1600,
  "tokens": 431689,
  "n_events": 174200,
- "n_proposed": 205431613,
- "n_accepted": 205431613,
- "n_identity_skips": 42458501,
+ "n_proposed": 328703708,
+ "n_accepted": 328703708,
+ "n_identity_skips": 67929670,
  "accept_rate": 1.0,
- "move_rate": 0.47587872982633334,
+ "move_rate": 0.4758977354067396,
  "observed": {
   "s1_multi": 0.025889781859931113,
   "r1_multi": 0.0018369690011481056,
@@ -61,7 +61,7 @@
   "r1_support_M_k26_plus": NaN,
   "r2_support_M_k26_plus": NaN
  },
- "wall_s_last_segment": 6838.681791305542,
- "resumed": false,
+ "wall_s_last_segment": 4010.055818796158,
+ "resumed": true,
  "status": "complete"
 }

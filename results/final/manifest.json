@@ -13,7 +13,7 @@
  },
  "music/beta+0.0": {
   "n_chains": 6,
-  "sweeps": 1000,
+  "sweeps": 1600,
   "chains": [
    "chain0_observed",
    "chain1_fill",
@@ -37,7 +37,7 @@
  },
  "enron/beta+0.0": {
   "n_chains": 6,
-  "sweeps": 1000,
+  "sweeps": 1600,
   "chains": [
    "chain0_observed",
    "chain1_fill",
@@ -85,7 +85,7 @@
  },
  "dnc/beta+0.0": {
   "n_chains": 6,
-  "sweeps": 1000,
+  "sweeps": 1600,
   "chains": [
    "chain0_observed",
    "chain1_fill",
@@ -97,7 +97,7 @@
  },
  "fauci/beta+0.0": {
   "n_chains": 6,
-  "sweeps": 1000,
+  "sweeps": 1600,
   "chains": [
    "chain0_observed",
    "chain1_fill",
