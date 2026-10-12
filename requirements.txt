@@ -3,3 +3,7 @@ pandas>=2.0
 matplotlib>=3.7
 pyarrow>=14.0        # twitter parquet
 h5py>=3.9            # optional: .mat hypergraphs (dblp/congress from Nate)
+
+# prediction/ tables additionally need:
+# scikit-learn>=1.4
+# lightgbm>=4.3
