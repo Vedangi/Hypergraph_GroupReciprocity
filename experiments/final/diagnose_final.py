@@ -102,7 +102,10 @@ def main():
             if "observed" in traces and "fill" in traces:
                 mo = np.mean([t[col].mean() for t in traces["observed"]])
                 mf = np.mean([t[col].mean() for t in traces["fill"]])
-                row_d[f"{col}_start_gap_in_mcse"] = (abs(mo - mf) / (2 * mcse)
+                # each start family holds half the chains, so the SE of the
+                # difference of the two family means is ~2*MCSE(pooled);
+                # record the gap in units of its 95% bound, 2*SE = 4*MCSE
+                row_d[f"{col}_start_gap_in_mcse"] = (abs(mo - mf) / (4 * mcse)
                                                      if mcse else np.nan)
             if col in REPORTED or col == "Phi":
                 oval = obs.get(col) if col != "Phi" else None
@@ -123,7 +126,7 @@ def main():
             fails.append(f"{key} ESS={row_d[f'{key}_ess']:.0f}<{ess_min}")
         sg = row_d.get(f"{key}_start_gap_in_mcse")
         if sg is not None and sg > 1:
-            fails.append(f"start-state gap {sg:.1f}x MCSE")
+            fails.append(f"start-state gap {sg:.1f}x its 95% bound")
         row_d["accepted"] = not fails; row_d["fail_reasons"] = "; ".join(fails)
         diag.append(row_d)
         recs.append((combo, fails))
