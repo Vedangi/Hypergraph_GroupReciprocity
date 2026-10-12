@@ -58,8 +58,23 @@ def main():
         raise SystemExit("no completed chains found")
     cm["combo"] = cm.dir.map(lambda d: os.path.relpath(os.path.dirname(d), root))
     cm.drop(columns=["observed"]).to_csv(os.path.join(root, "chains.csv"), index=False)
+    mpath = os.path.join(root, "manifest.json")
+    manifest = json.load(open(mpath)) if os.path.exists(mpath) else {}
     recs = []
-    for combo, g in cm.groupby("combo"):
+    for combo in sorted(set(cm.combo) | set(manifest)):
+        g = cm[cm.combo == combo]
+        exp = manifest.get(combo)
+        if exp is None:
+            print(f"  WARNING {combo}: no manifest entry (not launched by run_final?)")
+        else:
+            ok = g[(g.status == "complete") & (g.sweeps >= exp["sweeps"])]
+            if len(ok) < exp["n_chains"]:
+                diag.append(dict(combo=combo, n_chains=len(ok), accepted=False,
+                                 fail_reasons=f"INCOMPLETE {len(ok)}/{exp['n_chains']} "
+                                              f"chains at >= {exp['sweeps']} sweeps"))
+                recs.append((combo, [diag[-1]["fail_reasons"]]))
+                continue
+            g = ok
         ds, beta, filt = g.dataset.iloc[0], g.beta.iloc[0], g["filter"].iloc[0]
         obs = g.observed.iloc[0]
         PRIMARY, REPORTED = SETS["support" if "dedup" in filt else "multi"]

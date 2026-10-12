@@ -109,6 +109,19 @@ def main():
         want = set(a.extend)
         T = [t for t in T if t["dataset"] in want
              or f"{t['dataset']}:{t['beta']:g}" in want]
+    # manifest: expected chain count + target sweeps per combo, so diagnostics
+    # can refuse to summarize an incomplete chain set (plan sec. 13)
+    os.makedirs(out_root, exist_ok=True)
+    mpath = os.path.join(out_root, "manifest.json")
+    manifest = json.load(open(mpath)) if os.path.exists(mpath) else {}
+    for t in T:
+        combo = os.path.relpath(os.path.dirname(t["out_dir"]), out_root)
+        m = manifest.setdefault(combo, {"n_chains": 0, "sweeps": 0, "chains": []})
+        cname = os.path.basename(t["out_dir"])
+        if cname not in m["chains"]:
+            m["chains"].append(cname)
+        m["n_chains"] = len(m["chains"]); m["sweeps"] = max(m["sweeps"], t["sweeps"])
+    json.dump(manifest, open(mpath, "w"), indent=1)
     pending = [t for t in T if not done(t)]
     pending.sort(key=cost, reverse=True)                     # longest first
     print(f"{len(T)} tasks, {len(T)-len(pending)} already complete, "

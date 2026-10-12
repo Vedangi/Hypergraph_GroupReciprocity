@@ -25,11 +25,15 @@ import datasets                      # noqa: E402
 import multi_reciprocity as MR       # noqa: E402
 import multi_tilt as MT              # noqa: E402
 
-BINS = (("k3_5", 3, 5), ("k6_10", 6, 10), ("k11_25", 11, 10**9))
+# size bins; k26_plus is non-empty only in the uncapped sensitivity runs
+BINS = (("k3_5", 3, 5), ("k6_10", 6, 10), ("k11_25", 11, 25), ("k26_plus", 26, 10**9))
 MULTI = ("s1_multi", "r1_multi", "r2_multi")          # R_any^m, R_all^m, R_part^m
 SUPP = ("s1_support", "r1_support", "r2_support")  # p-weighted: support of the state
-# M-weighted support measures (the paper's definition): same per-team credit
-# f(p_T), weighted by M_T with denominator |E|; identical on duplicate-free states.
+# M-weighted support measures: the same per-team credit f(p_T) weighted by
+# M_T with denominator |E|.  On a duplicate-free state (e.g. the dedup start
+# E*) M_T = p_T and these equal the original support formulas; on shuffled
+# states containing repeats they are the multihypergraph extension that
+# counts every occurrence (the convention used for the support analysis).
 SUPP_M = ("s1_support_M", "r1_support_M", "r2_support_M")
 ALL_M = MULTI + SUPP + SUPP_M
 MEASURE_COLS = ([f"{m}" for m in ALL_M]
