@@ -23,11 +23,22 @@ ORDER = [("emaileu", "Email-Eu", "Communication"), ("enron", "Enron", "Communica
          ("radoslaw", "Radoslaw", "Communication"), ("twitter", "Twitter", "Communication"),
          ("congress", "Congress-bills", "Collaboration"), ("dblp", "DBLP", "Collaboration"),
          ("music", "Music", "Collaboration")]
-MEASURES = [("s1_multi", r"$R^{\rm m}_{\rm any}$", "#eb6834", "s"),
-            ("r2_multi", r"$R^{\rm m}_{\rm part}$", "#2a78d6", "o"),
-            ("r1_multi", r"$R^{\rm m}_{\rm all}$", "#009490", "^")]
-TEX_NAME = {"s1_multi": r"R^{\mathrm m}_{\mathrm{any}}", "r2_multi": r"R^{\mathrm m}_{\mathrm{part}}",
-            "r1_multi": r"R^{\mathrm m}_{\mathrm{all}}"}
+SETS = {
+    "multi": dict(filt="k3-25", tag="", title="multiplicity-aware measures, multihypergraph start",
+                  measures=[("s1_multi", r"$R^{\rm m}_{\rm any}$", "#eb6834", "s"),
+                            ("r2_multi", r"$R^{\rm m}_{\rm part}$", "#2a78d6", "o"),
+                            ("r1_multi", r"$R^{\rm m}_{\rm all}$", "#009490", "^")],
+                  tex={"s1_multi": r"R^{\mathrm m}_{\mathrm{any}}", "r2_multi": r"R^{\mathrm m}_{\mathrm{part}}",
+                       "r1_multi": r"R^{\mathrm m}_{\mathrm{all}}"}),
+    "support": dict(filt="k3-25-dedup", tag="_support",
+                    title="support measures (M-weighted), deduplicated start",
+                    measures=[("s1_support_M", r"$R_{\rm any}$", "#eb6834", "s"),
+                              ("r2_support_M", r"$R_{\rm part}$", "#2a78d6", "o"),
+                              ("r1_support_M", r"$R_{\rm all}$", "#009490", "^")],
+                    tex={"s1_support_M": r"R_{\mathrm{any}}", "r2_support_M": r"R_{\mathrm{part}}",
+                         "r1_support_M": r"R_{\mathrm{all}}"}),
+}
+MEASURES, TEX_NAME = SETS["multi"]["measures"], SETS["multi"]["tex"]
 INK, BODY, MUTED, GRID, SURF = ("#1a1a19", "#3d3d3a", "#6e6d68", "#d9d9d4", "#ffffff")
 
 
@@ -101,8 +112,8 @@ def make_figure(S, out):
             ax.spines[side].set_color(GRID)
         ax.xaxis.grid(True, color=GRID, lw=0.6, alpha=0.7); ax.set_axisbelow(True)
         ax.tick_params(labelsize=11, colors=MUTED, length=0)
-        for m, lab, col, mk in MEASURES:
-            off = {"s1_multi": -0.22, "r2_multi": 0.0, "r1_multi": 0.22}[m]
+        for mi, (m, lab, col, mk) in enumerate(MEASURES):
+            off = (mi - 1) * 0.22                       # dodge: any / part / all
             for key, *_ in ORDER:
                 r = S[(key, m)]
                 if kind == "diff":
@@ -142,17 +153,25 @@ def make_figure(S, out):
 
 
 def main():
+    global MEASURES, TEX_NAME
     p = argparse.ArgumentParser()
     p.add_argument("--results", default=os.path.join(HERE, "..", "..", "results", "final"))
+    p.add_argument("--set", default="multi", choices=list(SETS),
+                   help="multi (main table/figure) or support (appendix)")
     a = p.parse_args()
-    S = load(os.path.join(a.results, "summary.csv"))
-    make_table(S, os.path.join(a.results, "main_table.md"), os.path.join(a.results, "main_table.tex"))
-    print("[saved]", os.path.join(a.results, "main_table.{md,tex}"))
-    make_figure(S, os.path.join(a.results, "fig_null_separation"))
+    cfg = SETS[a.set]; MEASURES, TEX_NAME = cfg["measures"], cfg["tex"]
+    S = load(os.path.join(a.results, "summary.csv"), filt=cfg["filt"])
+    tag = cfg["tag"]
+    make_table(S, os.path.join(a.results, f"main_table{tag}.md"),
+               os.path.join(a.results, f"main_table{tag}.tex"))
+    print("[saved]", os.path.join(a.results, f"main_table{tag}.{{md,tex}}"))
+    make_figure(S, os.path.join(a.results, f"fig_null_separation{tag}"))
 
 
 if __name__ == "__main__":
     main()
 
-# How to run:  python make_main_outputs.py   (after diagnose_final.py)
-# Outputs in results/final/: main_table.md, main_table.tex, fig_null_separation.{pdf,png}
+# How to run (after diagnose_final.py):
+#   python make_main_outputs.py                 # main: multi measures, k3-25
+#   python make_main_outputs.py --set support   # appendix: *_support_M, dedup start
+# Outputs in results/final/: main_table[_support].{md,tex}, fig_null_separation[_support].{pdf,png}
