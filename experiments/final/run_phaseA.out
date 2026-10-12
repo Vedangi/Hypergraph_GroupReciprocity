@@ -1,0 +1,3 @@
+nohup: ignoring input
+final_chains selftest OK: reproducible seeds, resume == straight run, snapshot == MR.measures, dedup start (M==p at sweep 0), fill start + beta>0 run
+./run_phaseA.sh: line 12: /home/vedangibengali: Is a directory
