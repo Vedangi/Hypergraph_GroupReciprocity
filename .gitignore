@@ -5,3 +5,4 @@ __pycache__/
 Claude outputs/
 results/final_smoke/
 results/final*/**/checkpoint.pkl
+
