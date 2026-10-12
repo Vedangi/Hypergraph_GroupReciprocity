@@ -38,14 +38,21 @@ CHECKPOINT_EVERY = 25
 
 
 # ------------------------------------------------------------------ data
-def load_events(dataset, min_k=3, max_k=25):
+def load_events(dataset, min_k=3, max_k=25, dedup=False):
     """Group events (sender, sorted recipients) with min_k <= k <= max_k;
-    self-loops and recipient repeats removed. Dyadic events are excluded."""
+    self-loops and recipient repeats removed. Dyadic events are excluded.
+    dedup=True keeps each distinct (sender, recipient set) once -- the support
+    hypergraph E*, the start state of the support analysis. The chain itself
+    never deduplicates: repeats that form during sampling are kept and the
+    M-weighted support measures count them (denominator stays |E*|)."""
     out = []
     for s, R, _t in datasets.load_dataset(dataset):
         R = sorted(set(int(x) for x in R) - {int(s)})
         if min_k <= 1 + len(R) <= max_k:
             out.append((int(s), R))
+    if dedup:
+        out = sorted({(s, tuple(R)) for s, R in out})
+        out = [(s, list(R)) for s, R in out]
     return out
 
 
@@ -132,7 +139,7 @@ def run_chain(task):
     Resumes from <out_dir>/checkpoint.pkl if present; extends to task['sweeps'].
     Writes trace.csv (one row per sweep incl. sweep 0), meta.json, checkpoint."""
     d = task; out = d["out_dir"]; os.makedirs(out, exist_ok=True)
-    filt = f"k{d['min_k']}-{d['max_k']}"
+    filt = f"k{d['min_k']}-{d['max_k']}" + ("-dedup" if d.get("dedup") else "")
     seed = chain_seed(d["dataset"], d["beta"], d["chain_id"], filt)
     ck = os.path.join(out, "checkpoint.pkl")
     t0 = time.time()
@@ -147,7 +154,7 @@ def run_chain(task):
         tokens = st["tokens"]; n_events = st["n_events"]; obs = st["obs"]
         mode = "a"
     else:
-        ev = load_events(d["dataset"], d["min_k"], d["max_k"])
+        ev = load_events(d["dataset"], d["min_k"], d["max_k"], d.get("dedup", False))
         obs = snapshot(_evs_of(ev))
         start = ev if d["init"] == "observed" else projection_random_start(ev, seed ^ 0xA5A5)
         assert MT.proj_sig(start) == MT.proj_sig(ev)
@@ -208,7 +215,8 @@ def _write_row(tr, sw, Phi, snap):
 def _finish(out, st, t0, resumed):
     d = st["task"]
     meta = dict(dataset=d["dataset"], beta=d["beta"], chain_id=d["chain_id"],
-                init=d["init"], filter=f"k{d['min_k']}-{d['max_k']}",
+                init=d["init"], filter=f"k{d['min_k']}-{d['max_k']}"
+                + ("-dedup" if d.get("dedup") else ""), dedup_start=bool(d.get("dedup")),
                 seed=st["seed"], sweeps=st["sweep"], tokens=st["tokens"],
                 n_events=st["n_events"], n_proposed=st["n_prop"],
                 n_accepted=st["n_acc"], n_identity_skips=st["n_id"],
@@ -245,8 +253,15 @@ if __name__ == "__main__":
     sm = SR.support_measures_team(ev, min_k=3, weighting="M")
     for m, k in (("s1_support_M", "R_any"), ("r2_support_M", "R_part"), ("r1_support_M", "R_all")):
         assert abs(snap[m] - sm[k]) < 1e-12, m
-    # 4) fill start preserves projection; beta != 0 runs
+    # 4) dedup start: at sweep 0 every M_T = 1, so M- and p-weighted support agree
+    dd = load_events("fauci", dedup=True)
+    sd = snapshot(_evs_of(dd))
+    assert len(dd) == len({(s, tuple(R)) for s, R in dd}) < len(ev)
+    for m in SUPP:
+        assert abs(sd[m] - sd[m + "_M"]) < 1e-12, m
+    run_chain({**base, "dedup": True, "sweeps": 3, "out_dir": f"{tmp}/e"})
+    # 5) fill start preserves projection; beta != 0 runs
     run_chain({**base, "beta": 2.0, "init": "fill", "sweeps": 3, "out_dir": f"{tmp}/d"})
     shutil.rmtree(tmp)
     print("final_chains selftest OK: reproducible seeds, resume == straight run, "
-          "snapshot == MR.measures, fill start + beta>0 run")
+          "snapshot == MR.measures, dedup start (M==p at sweep 0), fill start + beta>0 run")

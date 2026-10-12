@@ -13,6 +13,9 @@ Phases:
      x 4 chains (2+2); 500 sweeps for |beta|<=2, 1000 for beta>=3
   S  size-cap sensitivity: {enron, congress} x {k<=10, uncapped} x 4 chains
      (the k<=25 runs are phase A), 1000 sweeps
+  D  support analysis: beta=0 null started from the DEDUPLICATED hypergraph
+     E* (each distinct hyperedge once), 9 datasets x 6 chains, 1000 sweeps;
+     report the M-weighted support measures (*_support_M), denominator |E*|
 """
 import argparse, json, os, sys, time, traceback
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -34,12 +37,12 @@ TOKENS = {"congress": 661297, "music": 431689, "enron": 336454,
 
 def tasks_for(phase, out_root, sweeps_override=None, smoke=False):
     T = []
-    def add(ds, beta, cid, init, sweeps, min_k=3, max_k=25, tag=None):
+    def add(ds, beta, cid, init, sweeps, min_k=3, max_k=25, tag=None, dedup=False):
         tag = tag or f"beta{beta:+.1f}"
         out = os.path.join(out_root, ds, tag, f"chain{cid}_{init}")
         T.append(dict(dataset=ds, beta=beta, chain_id=cid, init=init,
                       sweeps=sweeps_override or sweeps, out_dir=out,
-                      min_k=min_k, max_k=max_k))
+                      min_k=min_k, max_k=max_k, dedup=dedup))
     if "A" in phase:
         for ds in (["fauci", "dnc"] if smoke else DATASETS):
             for c in range(2 if smoke else 6):
@@ -58,12 +61,17 @@ def tasks_for(phase, out_root, sweeps_override=None, smoke=False):
                     add(ds, 0.0, c, "observed" if c % 2 == 0 else "fill",
                         8 if smoke else 1000, 3, mk,
                         tag=f"beta+0.0_k3-{mk if mk < 10**9 else 'inf'}")
+    if "D" in phase:
+        for ds in (["fauci", "dnc"] if smoke else DATASETS):
+            for c in range(2 if smoke else 6):
+                add(ds, 0.0, c, "observed" if c % 2 == 0 else "fill",
+                    8 if smoke else 1000, tag="beta+0.0_dedup", dedup=True)
     return T
 
 
 def cost(t):
     key = (t["dataset"], t["min_k"], t["max_k"]) if t["max_k"] != 25 else t["dataset"]
-    return TOKENS.get(key, 100000) * t["sweeps"]
+    return TOKENS.get(key, 100000) * t["sweeps"] * (0.6 if t.get("dedup") else 1.0)
 
 
 def done(t):
@@ -85,7 +93,7 @@ def _run(t):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--phase", default="ABS", help="any of A, B, S")
+    p.add_argument("--phase", default="ABSD", help="any of A, B, S, D")
     p.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 2) // 2))
     p.add_argument("--out", default=os.path.join(HERE, "..", "..", "results", "final"))
     p.add_argument("--sweeps", type=int, default=None,
@@ -112,7 +120,8 @@ def main():
         futs = [ex.submit(_run, t) for t in pending]
         for fu in as_completed(futs):
             t, m, err = fu.result()
-            tag = f"{t['dataset']} beta={t['beta']:+.1f} k{t['min_k']}-{t['max_k']} chain{t['chain_id']}/{t['init']}"
+            tag = (f"{t['dataset']} beta={t['beta']:+.1f} k{t['min_k']}-{t['max_k']}"
+                   f"{'-dedup' if t.get('dedup') else ''} chain{t['chain_id']}/{t['init']}")
             if err:
                 n_err += 1
                 errlog.write(f"[{time.strftime('%F %T')}] {tag}\n{err}\n"); errlog.flush()
@@ -128,6 +137,8 @@ def main():
 if __name__ == "__main__":
     main()
 
+# Phase D (support analysis, dedup start), run on its own:
+#   nohup python run_final.py --phase D --workers 54 > ../../results/final/run_D.log 2>&1 &
 # How to run on the 64-core server (2026-10-11):
 #   cd Hypergraph_GroupReciprocity/experiments/final
 #   nohup python run_final.py --phase ABS --workers 60 > ../../results/final/run.log 2>&1 &

@@ -15,8 +15,10 @@ import numpy as np
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PRIMARY = "r2_multi"
-REPORTED = ("s1_multi", "r1_multi", "r2_multi")
+# reported measures: multiplicity-aware for the main (multihypergraph-start)
+# chains; M-weighted support measures for the dedup-start support analysis
+SETS = {"multi": ("r2_multi", ("s1_multi", "r1_multi", "r2_multi")),
+        "support": ("r2_support_M", ("s1_support_M", "r1_support_M", "r2_support_M"))}
 RHAT_MAX, ESS_MIN_A, ESS_MIN_B = 1.01, 2000, 1000
 
 
@@ -60,6 +62,7 @@ def main():
     for combo, g in cm.groupby("combo"):
         ds, beta, filt = g.dataset.iloc[0], g.beta.iloc[0], g["filter"].iloc[0]
         obs = g.observed.iloc[0]
+        PRIMARY, REPORTED = SETS["support" if "dedup" in filt else "multi"]
         traces = {r.init: [] for r in g.itertuples()}
         all_tr = []
         for r in g.itertuples():
@@ -116,11 +119,13 @@ def main():
         if fails:
             print(f"  EXTEND {combo}: " + "; ".join(fails))
     s = pd.DataFrame(summ)
-    s0 = s[(s.beta == 0) & (s.measure == PRIMARY)]
+    s0 = s[(s.beta == 0) & s.measure.isin(["r2_multi", "r2_support_M"])
+           & ((s.measure == "r2_multi") != s["filter"].str.contains("dedup"))]
     if len(s0):
-        print("\nbeta=0 R_part^m (observed / null mean / ratio / exceeds all draws):")
+        print("\nbeta=0 partial measure -- R_part^m (multi start) or R_part^M (dedup start):"
+              "\n  observed / null mean / ratio / exceeds all draws")
         for r in s0.itertuples():
-            print(f"  {r.dataset:9s} {r.filter:8s} {r.observed:.4f} / {r.null_mean:.5f} "
+            print(f"  {r.dataset:9s} {r.filter:12s} {r.observed:.4f} / {r.null_mean:.5f} "
                   f"/ {r.ratio:6.2f}x / {r.obs_exceeds_all_draws}  "
                   f"(Rhat {r.rhat:.4f}, ESS {r.ess:,.0f})")
 
