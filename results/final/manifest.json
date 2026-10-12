@@ -106,5 +106,113 @@
    "chain4_observed",
    "chain5_fill"
   ]
+ },
+ "congress/beta+0.0_dedup": {
+  "n_chains": 6,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill",
+   "chain4_observed",
+   "chain5_fill"
+  ]
+ },
+ "music/beta+0.0_dedup": {
+  "n_chains": 6,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill",
+   "chain4_observed",
+   "chain5_fill"
+  ]
+ },
+ "dblp/beta+0.0_dedup": {
+  "n_chains": 6,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill",
+   "chain4_observed",
+   "chain5_fill"
+  ]
+ },
+ "enron/beta+0.0_dedup": {
+  "n_chains": 6,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill",
+   "chain4_observed",
+   "chain5_fill"
+  ]
+ },
+ "emaileu/beta+0.0_dedup": {
+  "n_chains": 6,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill",
+   "chain4_observed",
+   "chain5_fill"
+  ]
+ },
+ "twitter/beta+0.0_dedup": {
+  "n_chains": 6,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill",
+   "chain4_observed",
+   "chain5_fill"
+  ]
+ },
+ "radoslaw/beta+0.0_dedup": {
+  "n_chains": 6,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill",
+   "chain4_observed",
+   "chain5_fill"
+  ]
+ },
+ "dnc/beta+0.0_dedup": {
+  "n_chains": 6,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill",
+   "chain4_observed",
+   "chain5_fill"
+  ]
+ },
+ "fauci/beta+0.0_dedup": {
+  "n_chains": 6,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill",
+   "chain4_observed",
+   "chain5_fill"
+  ]
  }
 }
