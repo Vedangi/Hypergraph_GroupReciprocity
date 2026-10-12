@@ -145,7 +145,7 @@
  },
  "enron/beta+0.0_dedup": {
   "n_chains": 6,
-  "sweeps": 1000,
+  "sweeps": 1600,
   "chains": [
    "chain0_observed",
    "chain1_fill",
@@ -193,7 +193,7 @@
  },
  "dnc/beta+0.0_dedup": {
   "n_chains": 6,
-  "sweeps": 1000,
+  "sweeps": 1600,
   "chains": [
    "chain0_observed",
    "chain1_fill",
