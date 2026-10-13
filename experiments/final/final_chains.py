@@ -143,7 +143,9 @@ def run_chain(task):
     Resumes from <out_dir>/checkpoint.pkl if present; extends to task['sweeps'].
     Writes trace.csv (one row per sweep incl. sweep 0), meta.json, checkpoint."""
     d = task; out = d["out_dir"]; os.makedirs(out, exist_ok=True)
-    filt = f"k{d['min_k']}-{d['max_k']}" + ("-dedup" if d.get("dedup") else "")
+    stat = d.get("phi", "r2")          # "r2": Phi=|E|*R_part^m ; "r2M": Phi=|E|*R_part^M
+    filt = (f"k{d['min_k']}-{d['max_k']}" + ("-dedup" if d.get("dedup") else "")
+            + ("-phiM" if stat == "r2M" else ""))
     seed = chain_seed(d["dataset"], d["beta"], d["chain_id"], filt)
     ck = os.path.join(out, "checkpoint.pkl")
     t0 = time.time()
@@ -162,7 +164,7 @@ def run_chain(task):
         obs = snapshot(_evs_of(ev))
         start = ev if d["init"] == "observed" else projection_random_start(ev, seed ^ 0xA5A5)
         assert MT.proj_sig(start) == MT.proj_sig(ev)
-        evs, tsc, Phi, _ = MT._build_state(start, "r2")
+        evs, tsc, Phi, _ = MT._build_state(start, stat)
         rng = np.random.default_rng(seed)
         sweep0 = 0; n_prop = n_acc = n_id = 0
         tokens = sum(len(x) for e in evs.values() for x in e); n_events = len(ev)
@@ -187,11 +189,11 @@ def run_chain(task):
                     n_id += 1; continue
                 a = A[rng.integers(len(A))]; b = B[rng.integers(len(B))]
                 n_prop += 1
-                dPhi, _ = MT._apply_switch(evs, tsc, s, i, j, a, b, "r2", None)
+                dPhi, _ = MT._apply_switch(evs, tsc, s, i, j, a, b, stat, None)
                 if beta * dPhi >= 0 or rng.random() < np.exp(beta * dPhi):
                     Phi += dPhi; n_acc += 1
                 else:
-                    MT._apply_switch(evs, tsc, s, i, j, b, a, "r2", None)
+                    MT._apply_switch(evs, tsc, s, i, j, b, a, stat, None)
             _write_row(tr, sw, Phi, snapshot(evs))
             if sw % CHECKPOINT_EVERY == 0 or sw == d["sweeps"]:
                 tr.flush()
@@ -220,7 +222,9 @@ def _finish(out, st, t0, resumed):
     d = st["task"]
     meta = dict(dataset=d["dataset"], beta=d["beta"], chain_id=d["chain_id"],
                 init=d["init"], filter=f"k{d['min_k']}-{d['max_k']}"
-                + ("-dedup" if d.get("dedup") else ""), dedup_start=bool(d.get("dedup")),
+                + ("-dedup" if d.get("dedup") else "")
+                + ("-phiM" if d.get("phi", "r2") == "r2M" else ""),
+                dedup_start=bool(d.get("dedup")), phi=d.get("phi", "r2"),
                 seed=st["seed"], sweeps=st["sweep"], tokens=st["tokens"],
                 n_events=st["n_events"], n_proposed=st["n_prop"],
                 n_accepted=st["n_acc"], n_identity_skips=st["n_id"],
@@ -266,6 +270,17 @@ if __name__ == "__main__":
     run_chain({**base, "dedup": True, "sweeps": 3, "out_dir": f"{tmp}/e"})
     # 5) fill start preserves projection; beta != 0 runs
     run_chain({**base, "beta": 2.0, "init": "fill", "sweeps": 3, "out_dir": f"{tmp}/d"})
+    # 6) support tilt (phi="r2M", dedup start): the traced Phi equals
+    #    |E*| * r2_support_M on every state, incl. after accepted switches
+    import pandas as pd
+    for init in ("observed", "fill"):
+        mt = run_chain({**base, "beta": 3.0, "init": init, "dedup": True, "phi": "r2M",
+                        "sweeps": 4, "out_dir": f"{tmp}/f_{init}"})
+        tr = pd.read_csv(f"{tmp}/f_{init}/trace.csv")
+        assert mt["phi"] == "r2M" and mt["n_accepted"] > 0
+        assert np.allclose(tr.Phi, mt["n_events"] * tr.r2_support_M, atol=1e-4), "Phi != |E*| R_part^M"
+        assert not np.allclose(tr.Phi, mt["n_events"] * tr.r2_multi, atol=1e-4) or init == "observed"
     shutil.rmtree(tmp)
     print("final_chains selftest OK: reproducible seeds, resume == straight run, "
-          "snapshot == MR.measures, dedup start (M==p at sweep 0), fill start + beta>0 run")
+          "snapshot == MR.measures, dedup start (M==p at sweep 0), fill start + beta>0 run, "
+          "support tilt Phi == |E*| R_part^M along the chain")

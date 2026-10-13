@@ -61,6 +61,11 @@ def _phi_team(team, cnt, stat):
     m = list(cnt.values())
     if stat == "pairs":
         return float(sum(a * b for i, a in enumerate(m) for b in m[i + 1:]))
+    if stat == "r2M":
+        # M-weighted support partial credit: M_T (q_T - 1)/(k_T - 1), with
+        # q_T the number of distinct senders of team T and M_T its multiplicity
+        # (Phi = |E| * R_part^M; equals the support R_part on duplicate-free states)
+        return sum(m) * (len(m) - 1) / (len(team) - 1)
     return _w(team) * sum(min(a, b) for i, a in enumerate(m) for b in m[i + 1:])
 
 
@@ -72,6 +77,10 @@ def _dphi_change(tsc, team, s, delta, stat):
     if stat == "pairs":
         others = sum(v for t, v in d.items() if t != s)
         dphi = float(delta * others)
+    elif stat == "r2M":
+        M, q = sum(d.values()), len(d)
+        q_new = q + (1 if c_old == 0 else 0) - (1 if c_new == 0 else 0)
+        dphi = ((M + delta) * (q_new - 1) - M * (q - 1)) / (len(team) - 1)
     else:
         if delta == +1:
             dphi = _w(team) * sum(1 for t, v in d.items()
@@ -168,8 +177,8 @@ def tilt_sample(events, theta, n_steps=None, sweep_multiplier=20, seed=0,
                         Prod m_new! / Prod m_old!  (the same factorial
                         reweighting DiNgHy uses for its edge-unordered space).
     """
-    if stat not in ("r2", "pairs"):
-        raise ValueError("stat must be 'r2' or 'pairs'")
+    if stat not in ("r2", "pairs", "r2M"):
+        raise ValueError("stat must be 'r2', 'pairs' or 'r2M'")
     if base not in ("labelled", "unlabelled"):
         raise ValueError("base must be 'labelled' or 'unlabelled'")
     rng = np.random.default_rng(seed)

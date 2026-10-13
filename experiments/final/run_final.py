@@ -16,6 +16,9 @@ Phases:
   D  support analysis: beta=0 null started from the DEDUPLICATED hypergraph
      E* (each distinct hyperedge once), 9 datasets x 6 chains, 1000 sweeps;
      report the M-weighted support measures (*_support_M), denominator |E*|
+  T  support-family beta sweep: dedup start E*, tilt Phi = |E*| * R_part^M
+     (M-weighted support partial reciprocity), {emaileu, enron} x BETAS x 4
+     chains (2+2); 500 sweeps for |beta|<=2, 1000 for beta>=3; beta=0 is phase D
 """
 import argparse, json, os, sys, time, traceback
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -28,6 +31,7 @@ DATASETS = ["congress", "music", "dblp", "enron", "emaileu", "twitter",
             "radoslaw", "dnc", "fauci"]
 BETA_DATASETS = ["emaileu", "enron", "twitter", "congress"]
 BETAS = [-1.0, 1.0, 2.0, 3.0, 4.0, 5.0]
+SUPPORT_TILT_DATASETS = ["emaileu", "enron"]
 TOKENS = {"congress": 661297, "music": 431689, "enron": 336454,
           "dblp": 221926, "emaileu": 139453, "twitter": 51481,
           "radoslaw": 30318, "dnc": 16040, "fauci": 1288,
@@ -37,12 +41,12 @@ TOKENS = {"congress": 661297, "music": 431689, "enron": 336454,
 
 def tasks_for(phase, out_root, sweeps_override=None, smoke=False):
     T = []
-    def add(ds, beta, cid, init, sweeps, min_k=3, max_k=25, tag=None, dedup=False):
+    def add(ds, beta, cid, init, sweeps, min_k=3, max_k=25, tag=None, dedup=False, phi="r2"):
         tag = tag or f"beta{beta:+.1f}"
         out = os.path.join(out_root, ds, tag, f"chain{cid}_{init}")
         T.append(dict(dataset=ds, beta=beta, chain_id=cid, init=init,
                       sweeps=sweeps_override or sweeps, out_dir=out,
-                      min_k=min_k, max_k=max_k, dedup=dedup))
+                      min_k=min_k, max_k=max_k, dedup=dedup, phi=phi))
     if "A" in phase:
         for ds in (["fauci", "dnc"] if smoke else DATASETS):
             for c in range(2 if smoke else 6):
@@ -61,6 +65,15 @@ def tasks_for(phase, out_root, sweeps_override=None, smoke=False):
                     add(ds, 0.0, c, "observed" if c % 2 == 0 else "fill",
                         8 if smoke else 1000, 3, mk,
                         tag=f"beta+0.0_k3-{mk if mk < 10**9 else 'inf'}")
+    if "T" in phase:
+        # support-family tilt: dedup start E*, Phi = |E*| * R_part^M (phi="r2M");
+        # beta=0 of this family is phase D (same tag prefix, beta+0.0_dedup)
+        for ds in (["fauci"] if smoke else SUPPORT_TILT_DATASETS):
+            for b in ([1.0, 3.0] if smoke else BETAS):
+                for c in range(2 if smoke else 4):
+                    add(ds, b, c, "observed" if c % 2 == 0 else "fill",
+                        8 if smoke else (500 if abs(b) <= 2 else 1000),
+                        tag=f"beta{b:+.1f}_dedup", dedup=True, phi="r2M")
     if "D" in phase:
         for ds in (["fauci", "dnc"] if smoke else DATASETS):
             for c in range(2 if smoke else 6):
@@ -134,7 +147,8 @@ def main():
         for fu in as_completed(futs):
             t, m, err = fu.result()
             tag = (f"{t['dataset']} beta={t['beta']:+.1f} k{t['min_k']}-{t['max_k']}"
-                   f"{'-dedup' if t.get('dedup') else ''} chain{t['chain_id']}/{t['init']}")
+                   f"{'-dedup' if t.get('dedup') else ''}{'-phiM' if t.get('phi') == 'r2M' else ''}"
+                   f" chain{t['chain_id']}/{t['init']}")
             if err:
                 n_err += 1
                 errlog.write(f"[{time.strftime('%F %T')}] {tag}\n{err}\n"); errlog.flush()

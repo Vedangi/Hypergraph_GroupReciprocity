@@ -13,6 +13,8 @@ all its chains reached the target sweeps.
 --set support  : M-weighted support measures evaluated on the SUPPORT of each
                  occurrence-level tilted state (plan sec. 7 wording; this is
                  not a support-only state space and the tilt is still Phi^m)
+--set support_tilt : phase-T chains: dedup start E*, tilt Phi = |E*| R_part^M
+                 (the M-weighted support partial reciprocity); beta=0 = phase D
 
 Figure: one facet per dataset, beta on x, E_beta[R] on y, one curve per
 measure, error bars = ±2 MCSE (usually smaller than the marker), observed
@@ -35,17 +37,22 @@ from make_main_outputs import SETS, INK, BODY, MUTED, GRID, SURF  # noqa: E402
 
 DATASETS = [("emaileu", "Email-Eu"), ("enron", "Enron"),
             ("twitter", "Twitter"), ("congress", "Congress-bills")]
-PRIMARY = {"multi": "r2_multi", "support": "r2_support_M"}
+PRIMARY = {"multi": "r2_multi", "support": "r2_support_M", "support_tilt": "r2_support_M"}
+# support_tilt: phase T chains -- dedup start E*, tilt Phi = |E*| R_part^M
+# (phi="r2M"); beta=0 is phase D. Same measures as "support", own tag.
+SETS["support_tilt"] = dict(SETS["support"], tag="_support_tilt", dedup=True,
+                            title="support measures (M-weighted), support tilt, dedup start")
 
 
-def combo_dirs(root, ds):
-    """{beta: combo_dir} for the non-dedup k3-25 runs of one dataset."""
+def combo_dirs(root, ds, dedup=False):
+    """{beta: combo_dir} for the k3-25 runs of one dataset: the
+    multihypergraph-start chains (dedup=False) or the dedup-start chains."""
     out = {}
     for d in sorted(glob.glob(os.path.join(root, ds, "beta*"))):
         tag = os.path.basename(d)
-        if tag.endswith("_dedup") or "_k" in tag:
+        if "_k" in tag or tag.endswith("_dedup") != dedup:
             continue
-        out[float(tag.replace("beta", ""))] = d
+        out[float(tag.replace("beta", "").replace("_dedup", ""))] = d
     return out
 
 
@@ -117,7 +124,7 @@ def main():
 
     rows = []
     for ds, _ in DATASETS:
-        for beta, cdir in sorted(combo_dirs(root, ds).items()):
+        for beta, cdir in sorted(combo_dirs(root, ds, S.get("dedup", False)).items()):
             loaded, why = load_combo(cdir, manifest, root, a.burn)
             if loaded is None:
                 print("  SKIP", why)
@@ -169,7 +176,7 @@ def main():
         ax.set_xlabel(r"$\beta$", fontsize=12, color=BODY)
         ax.set_xticks(sorted(F.beta.unique()))
     axes[0].set_ylabel(r"$\mathbb{E}_\beta[R]$" +
-                       ("  (support, $M$-weighted)" if a.set == "support" else ""),
+                       ("  (support, $M$-weighted)" if a.set != "multi" else ""),
                        fontsize=11.5, color=BODY)
     handles = [Line2D([], [], color=col, marker=mk, lw=1.8, ms=6, label=lab)
                for _, lab, col, mk in measures]
@@ -201,6 +208,7 @@ if __name__ == "__main__":
 # How this was run (2026-10-13):
 #   <venv-python> make_beta_figure.py --set multi            # main figure
 #   <venv-python> make_beta_figure.py --set support          # appendix (plan sec. 7)
+#   <venv-python> make_beta_figure.py --set support_tilt     # phase T (support-family tilt)
 #   add --beta-max 4 to drop the diagnostic-only beta=5 points from the plot
 # Render-only: reads results/final/<ds>/beta*/chain*/{trace.csv,meta.json} and
 # results/final/manifest.json; writes results/final/beta_sweep_summary[_support].csv
