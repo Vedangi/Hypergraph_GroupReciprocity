@@ -147,11 +147,13 @@ def main():
     T.to_csv(tab, index=False, float_format="%.6g")
     print("[saved]", tab)
 
-    # ---- figure
-    fig, axes = plt.subplots(1, len(DATASETS), figsize=(3.6 * len(DATASETS), 3.7))
-    fig.patch.set_facecolor(SURF)
+    # ---- figure (only datasets with a sweep, i.e. >= 2 beta points)
     F = T[T.beta <= a.beta_max]
-    for ax, (ds, name) in zip(axes, DATASETS):
+    panels = [(ds, name) for ds, name in DATASETS if F[F.dataset == ds].beta.nunique() >= 2]
+    fig, axes = plt.subplots(1, len(panels), figsize=(3.6 * len(panels), 3.7), squeeze=False)
+    axes = axes[0]
+    fig.patch.set_facecolor(SURF)
+    for ax, (ds, name) in zip(axes, panels):
         style(ax)
         d = F[F.dataset == ds]
         if d.empty:
