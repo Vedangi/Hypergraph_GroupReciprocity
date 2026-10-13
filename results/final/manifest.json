@@ -214,5 +214,245 @@
    "chain4_observed",
    "chain5_fill"
   ]
+ },
+ "emaileu/beta-1.0": {
+  "n_chains": 4,
+  "sweeps": 500,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "emaileu/beta+1.0": {
+  "n_chains": 4,
+  "sweeps": 500,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "emaileu/beta+2.0": {
+  "n_chains": 4,
+  "sweeps": 500,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "emaileu/beta+3.0": {
+  "n_chains": 4,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "emaileu/beta+4.0": {
+  "n_chains": 4,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "emaileu/beta+5.0": {
+  "n_chains": 4,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "enron/beta-1.0": {
+  "n_chains": 4,
+  "sweeps": 500,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "enron/beta+1.0": {
+  "n_chains": 4,
+  "sweeps": 500,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "enron/beta+2.0": {
+  "n_chains": 4,
+  "sweeps": 500,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "enron/beta+3.0": {
+  "n_chains": 4,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "enron/beta+4.0": {
+  "n_chains": 4,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "enron/beta+5.0": {
+  "n_chains": 4,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "twitter/beta-1.0": {
+  "n_chains": 4,
+  "sweeps": 500,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "twitter/beta+1.0": {
+  "n_chains": 4,
+  "sweeps": 500,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "twitter/beta+2.0": {
+  "n_chains": 4,
+  "sweeps": 500,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "twitter/beta+3.0": {
+  "n_chains": 4,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "twitter/beta+4.0": {
+  "n_chains": 4,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "twitter/beta+5.0": {
+  "n_chains": 4,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "congress/beta-1.0": {
+  "n_chains": 4,
+  "sweeps": 500,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "congress/beta+1.0": {
+  "n_chains": 4,
+  "sweeps": 500,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "congress/beta+2.0": {
+  "n_chains": 4,
+  "sweeps": 500,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "congress/beta+3.0": {
+  "n_chains": 4,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "congress/beta+4.0": {
+  "n_chains": 4,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "congress/beta+5.0": {
+  "n_chains": 4,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
  }
 }
