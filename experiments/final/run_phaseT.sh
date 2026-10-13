@@ -1,7 +1,7 @@
 #!/bin/bash
 # Phase T: support-family beta sweep (dedup start E*, Phi = |E*| * R_part^M,
 # phi="r2M"), {emaileu, enron} x beta in {-1,1,2,3,4,5} x 4 chains (2 observed
-# + 2 fill); 500 sweeps for |beta|<=2, 1000 for beta>=3. beta=0 is phase D.
+# + 2 fill); 1000 sweeps for every beta (~1 h wall, Enron-bound). beta=0 is phase D.
 # Output: results/final/<ds>/beta<b>_dedup/chain*/ ; then on the laptop:
 #   python diagnose_final.py && python make_beta_figure.py --set support_tilt
 

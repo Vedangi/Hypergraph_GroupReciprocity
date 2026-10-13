@@ -18,7 +18,7 @@ Phases:
      report the M-weighted support measures (*_support_M), denominator |E*|
   T  support-family beta sweep: dedup start E*, tilt Phi = |E*| * R_part^M
      (M-weighted support partial reciprocity), {emaileu, enron} x BETAS x 4
-     chains (2+2); 500 sweeps for |beta|<=2, 1000 for beta>=3; beta=0 is phase D
+     chains (2+2); 1000 sweeps for every beta; beta=0 is phase D
 """
 import argparse, json, os, sys, time, traceback
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -72,7 +72,7 @@ def tasks_for(phase, out_root, sweeps_override=None, smoke=False):
             for b in ([1.0, 3.0] if smoke else BETAS):
                 for c in range(2 if smoke else 4):
                     add(ds, b, c, "observed" if c % 2 == 0 else "fill",
-                        8 if smoke else (500 if abs(b) <= 2 else 1000),
+                        8 if smoke else 1000,
                         tag=f"beta{b:+.1f}_dedup", dedup=True, phi="r2M")
     if "D" in phase:
         for ds in (["fauci", "dnc"] if smoke else DATASETS):
