@@ -574,5 +574,65 @@
    "chain2_observed",
    "chain3_fill"
   ]
+ },
+ "twitter/beta+1.0_dedup": {
+  "n_chains": 4,
+  "sweeps": 3000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "twitter/beta+2.0_dedup": {
+  "n_chains": 4,
+  "sweeps": 3000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "twitter/beta+3.0_dedup": {
+  "n_chains": 4,
+  "sweeps": 3000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "twitter/beta-1.0_dedup": {
+  "n_chains": 4,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "twitter/beta+4.0_dedup": {
+  "n_chains": 4,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
+ },
+ "twitter/beta+5.0_dedup": {
+  "n_chains": 4,
+  "sweeps": 1000,
+  "chains": [
+   "chain0_observed",
+   "chain1_fill",
+   "chain2_observed",
+   "chain3_fill"
+  ]
  }
 }
