@@ -114,6 +114,10 @@ def main():
     p.add_argument("--rhat-max", type=float, default=1.05)
     p.add_argument("--beta-max", type=float, default=np.inf,
                    help="drop beta points above this value from the figure")
+    p.add_argument("--no-beta-hat", action="store_true",
+                   help="omit the moment-match beta-hat marker/annotation")
+    p.add_argument("--all-filled", action="store_true",
+                   help="draw every point filled (no mixing marker; placeholder figures)")
     a = p.parse_args()
     root = os.path.abspath(a.out)
     manifest = json.load(open(os.path.join(root, "manifest.json")))
@@ -143,6 +147,8 @@ def main():
     rh = T.groupby(["dataset", "beta"]).rhat.max().rename("rhat_max_measures")
     T = T.merge(rh, on=["dataset", "beta"])
     T["mixed"] = (T.Phi_ess >= a.ess_min) & (T.rhat_max_measures <= a.rhat_max)
+    if a.all_filled:
+        T["mixed"] = True
     tab = os.path.join(root, f"beta_sweep_summary{S['tag']}.csv")
     T.to_csv(tab, index=False, float_format="%.6g")
     print("[saved]", tab)
@@ -168,7 +174,7 @@ def main():
             ax.plot(g.beta[~ok], g["mean"][~ok], mk, ms=6, mfc=SURF, mec=col, mew=1.4, zorder=3)
             ax.axhline(g.observed.iloc[0], color=col, lw=1, ls="--", alpha=0.65, zorder=1)
         g = d[d.measure == prim].sort_values("beta")
-        bh = beta_hat(g.beta, g["mean"], g.observed.iloc[0])
+        bh = np.nan if a.no_beta_hat else beta_hat(g.beta, g["mean"], g.observed.iloc[0])
         if np.isfinite(bh):
             pc = dict((m, col) for m, _, col, _ in measures)[prim]
             ax.axvline(bh, color=pc, lw=1, ls=":", alpha=0.9, zorder=1)
@@ -213,6 +219,7 @@ if __name__ == "__main__":
 #   <venv-python> make_beta_figure.py --set support          # appendix (plan sec. 7)
 #   <venv-python> make_beta_figure.py --set support_tilt     # phase T (support-family tilt)
 #   add --beta-max 4 to drop the diagnostic-only beta=5 points from the plot
+#   placeholder (no beta-hat, no mixing markers): --no-beta-hat --all-filled
 # Render-only: reads results/final/<ds>/beta*/chain*/{trace.csv,meta.json} and
 # results/final/manifest.json; writes results/final/beta_sweep_summary[_support].csv
 # and fig_beta_sweep[_support].{pdf,png}.
