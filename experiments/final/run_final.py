@@ -17,7 +17,7 @@ Phases:
      E* (each distinct hyperedge once), 9 datasets x 6 chains, 1000 sweeps;
      report the M-weighted support measures (*_support_M), denominator |E*|
   T  support-family beta sweep: dedup start E*, tilt Phi = |E*| * R_part^M
-     (M-weighted support partial reciprocity), {emaileu, enron} x BETAS x 4
+     (M-weighted support partial reciprocity), BETA_DATASETS x BETAS x 4
      chains (2+2); 1000 sweeps for every beta; beta=0 is phase D
 """
 import argparse, json, os, sys, time, traceback
@@ -31,7 +31,7 @@ DATASETS = ["congress", "music", "dblp", "enron", "emaileu", "twitter",
             "radoslaw", "dnc", "fauci"]
 BETA_DATASETS = ["emaileu", "enron", "twitter", "congress"]
 BETAS = [-1.0, 1.0, 2.0, 3.0, 4.0, 5.0]
-SUPPORT_TILT_DATASETS = ["emaileu", "enron"]
+SUPPORT_TILT_DATASETS = ["emaileu", "enron", "twitter", "congress"]   # = BETA_DATASETS
 TOKENS = {"congress": 661297, "music": 431689, "enron": 336454,
           "dblp": 221926, "emaileu": 139453, "twitter": 51481,
           "radoslaw": 30318, "dnc": 16040, "fauci": 1288,
