@@ -182,9 +182,10 @@ def main():
                        fontsize=11.5, color=BODY)
     handles = [Line2D([], [], color=col, marker=mk, lw=1.8, ms=6, label=lab)
                for _, lab, col, mk in measures]
-    handles += [Line2D([], [], color=MUTED, ls="--", lw=1, label="observed"),
-                Line2D([], [], color=MUTED, marker="o", mfc=SURF, lw=0, ms=6, mew=1.4,
-                       label=rf"ESS($\Phi$)<{a.ess_min:g} or $\widehat R$>{a.rhat_max}")]
+    handles += [Line2D([], [], color=MUTED, ls="--", lw=1, label="observed")]
+    if not F.mixed.all():                 # hollow-marker entry only when needed
+        handles += [Line2D([], [], color=MUTED, marker="o", mfc=SURF, lw=0, ms=6, mew=1.4,
+                           label=rf"ESS($\Phi$)<{a.ess_min:g} or $\widehat R$>{a.rhat_max}")]
     fig.legend(handles=handles, loc="upper center", ncol=len(handles), frameon=False,
                fontsize=10.5, labelcolor=BODY, bbox_to_anchor=(0.5, 1.02))
     fig.tight_layout(rect=(0, 0, 1, 0.93))
