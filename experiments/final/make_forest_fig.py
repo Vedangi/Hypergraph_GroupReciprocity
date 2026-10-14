@@ -6,7 +6,8 @@ Main figure (default): two columns, partial measure only --
   left  R^m_part  (multiplicity-aware, multihypergraph start, filter k3-25)
   right R^M_part  (M-weighted support, dedup start E*, filter k3-25-dedup)
 One row per dataset (communication / collaboration separated by a gap).
-Gray segment = central 95% null reference interval, gray open circle = null
+Gray segment = central 95% interval of the null distribution (2.5th-97.5th
+percentiles over all retained null states), gray open circle = null
 mean, colored filled circle = observed score. LOG x-axis, so the horizontal
 gap between the two circles is log(observed / null mean); the ratio is
 printed at the right margin of every row.
@@ -31,7 +32,7 @@ COLS = {"any": ("s1", r"R_{\rm any}", "#eb6834"),
         "part": ("r2", r"R_{\rm part}", "#2a78d6"),
         "all": ("r1", r"R_{\rm all}", "#009490")}
 FAMS = {"multi": dict(filt="k3-25", suf="_multi", sup=r"\rm m", name="multiplicity-aware"),
-        "support": dict(filt="k3-25-dedup", suf="_support_M", sup="M", name="support ($M$-weighted)")}
+        "support": dict(filt="k3-25-dedup", suf="_support_M", sup="", name="support")}
 
 
 def load(path):
@@ -114,7 +115,7 @@ def main():
     for ax in np.ravel(axes):
         ysep = (ypos["twitter"] + ypos["congress"]) / 2
         ax.axhline(ysep, color=GRID, lw=0.8, ls=(0, (3, 3)))
-    handles = [Line2D([], [], color=NULL_C, lw=2.2, label="null 95% reference interval"),
+    handles = [Line2D([], [], color=NULL_C, lw=2.2, label="null distribution: central 95% interval"),
                Line2D([], [], marker="o", mfc=SURF, mec=NULL_C, mew=1.5, lw=0, ms=6.5, label="null mean"),
                Line2D([], [], marker="o", color=BODY, lw=0, ms=6.5, label="observed"),
                Line2D([], [], lw=0, label="×r = observed / null mean")]
