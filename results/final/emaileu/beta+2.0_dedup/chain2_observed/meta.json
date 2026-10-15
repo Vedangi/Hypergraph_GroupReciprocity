@@ -7,14 +7,14 @@
  "dedup_start": true,
  "phi": "r2M",
  "seed": 264100497,
- "sweeps": 1000,
+ "sweeps": 3000,
  "tokens": 56225,
  "n_events": 14120,
- "n_proposed": 36654611,
- "n_accepted": 27065010,
- "n_identity_skips": 4972229,
- "accept_rate": 0.73837940880071,
- "move_rate": 0.4813696754112939,
+ "n_proposed": 109953899,
+ "n_accepted": 81195884,
+ "n_identity_skips": 14927830,
+ "accept_rate": 0.7384538860236325,
+ "move_rate": 0.48137473840225287,
  "observed": {
   "s1_multi": 0.303328611898017,
   "r1_multi": 0.07698300283286119,
@@ -62,7 +62,7 @@
   "r1_support_M_k26_plus": NaN,
   "r2_support_M_k26_plus": NaN
  },
- "wall_s_last_segment": 870.9104843139648,
- "resumed": false,
+ "wall_s_last_segment": 1776.1684839725494,
+ "resumed": true,
  "status": "complete"
 }
