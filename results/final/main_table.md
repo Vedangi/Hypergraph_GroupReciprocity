@@ -12,4 +12,4 @@
 |  | DBLP | 0.031* | 0.013 | +0.018 | 0.014* | 0.0059 | +0.0076 | 0.0008* | 2.1e-04 | +0.0006 |
 |  | Music | 0.026* | 0.0053 | +0.021 | 0.013* | 0.0028 | +0.010 | 0.0018* | 3.8e-04 | +0.0015 |
 
-`*` observed value exceeds every retained null draw (outside the 95% null reference interval).
+`*` observed value exceeds every retained null draw (outside the central 95% null interval, i.e. the 2.5th-97.5th percentiles of the statistic over all retained null states).

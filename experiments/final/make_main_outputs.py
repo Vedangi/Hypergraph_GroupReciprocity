@@ -3,11 +3,11 @@
 Render-only: reads results/final/summary.csv (written by diagnose_final.py).
 
 Table  : observed, null mean, observed - null for the three multiplicity-aware
-         measures; '*' marks observed outside the 95% null reference interval
+         measures; '*' marks observed outside the central 95% null interval
          (here always: observed exceeds every retained draw). -> main_table.{md,tex}
 Figure : dot plot, datasets on the y-axis grouped by domain; left panel
          observed - E0[R] (absolute), right panel observed / E0[R] (log);
-         bars span the null 95% reference interval mapped onto each quantity.
+         bars span the central 95% null interval mapped onto each quantity.
 """
 import argparse, os
 import matplotlib
@@ -66,8 +66,9 @@ def make_table(S, out_md, out_tex):
            r"projection-preserving null model ($\beta=0$; $3\le k\le 25$; nine datasets, "
            r"six chains each, all post-burn-in states). Null means are expectations under "
            r"the fixed-weighted-projection, fixed-event-size null; $^{*}$ marks observed "
-           r"values outside the 95\% null reference interval (in every case the observed "
-           r"value exceeds all retained null draws). Null reference intervals, "
+           r"values outside the central 95\% null interval, i.e.\ the 2.5th--97.5th "
+           r"percentiles of the statistic over all retained null states (in every case "
+           r"the observed value exceeds all retained null draws). Null intervals, "
            r"$\widehat R$, ESS and Monte Carlo errors are reported in the appendix.}",
            r"\label{tab:null-main}", r"\small", r"\begin{tabular}{llrrrrrrrrr}", r"\toprule",
            r"Domain & Dataset & " + " & ".join(
@@ -88,7 +89,8 @@ def make_table(S, out_md, out_tex):
         tex.append(f"{dom if dom != prev else ''} & {name} & " + " & ".join(cells_tex) + r" \\")
         prev = dom
     tex += [r"\bottomrule", r"\end{tabular}", r"\end{table*}"]
-    md.append("\n`*` observed value exceeds every retained null draw (outside the 95% null reference interval).")
+    md.append("\n`*` observed value exceeds every retained null draw (outside the central 95% null interval, "
+              "i.e. the 2.5th-97.5th percentiles of the statistic over all retained null states).")
     open(out_md, "w").write("\n".join(md) + "\n")
     open(out_tex, "w").write("\n".join(tex) + "\n")
 
