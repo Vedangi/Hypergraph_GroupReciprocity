@@ -16,11 +16,14 @@ Phases:
   D  support analysis: beta=0 null started from the DEDUPLICATED hypergraph
      E* (each distinct hyperedge once), 9 datasets x 6 chains, 1000 sweeps;
      report the M-weighted support measures (*_support_M), denominator |E*|
+  I  DiNgHy-style replication: 33 independent chains from the observed state,
+     20 x (|E| + L)/L sweeps each (= 20 x bipartite edges proposals), beta=0,
+     terminal states only -> empirical p-values (indep_pvalues.py)
   T  support-family beta sweep: dedup start E*, tilt Phi = |E*| * R_part^M
      (M-weighted support partial reciprocity), BETA_DATASETS x BETAS x 4
      chains (2+2); 1000 sweeps for every beta; beta=0 is phase D
 """
-import argparse, json, os, sys, time, traceback
+import argparse, json, math, os, sys, time, traceback
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -74,6 +77,16 @@ def tasks_for(phase, out_root, sweeps_override=None, smoke=False):
                     add(ds, b, c, "observed" if c % 2 == 0 else "fill",
                         8 if smoke else 1000,
                         tag=f"beta{b:+.1f}_dedup", dedup=True, phi="r2M")
+    if "I" in phase:
+        # DiNgHy/NuDHy-style protocol (Abuissa et al. 2025; Preti et al. 2024):
+        # 33 independent chains from the observed state, each run for
+        # 20 x (#head incidences + #tail incidences) proposals = 20 (|E| + L)/L
+        # of our sweeps, terminal state only (summarised by indep_pvalues.py)
+        for ds in (["fauci"] if smoke else DATASETS):
+            n_ev = len(FC.load_events(ds)); L = TOKENS[ds]
+            sw = 2 if smoke else math.ceil(20 * (n_ev + L) / L)
+            for c in range(3 if smoke else 33):
+                add(ds, 0.0, c, "observed", sw, tag="beta+0.0_indep33")
     if "D" in phase:
         for ds in (["fauci", "dnc"] if smoke else DATASETS):
             for c in range(2 if smoke else 6):
