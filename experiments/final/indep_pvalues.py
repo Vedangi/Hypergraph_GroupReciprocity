@@ -5,7 +5,7 @@ state only). For each dataset and measure: observed value, median / min /
 max / mean / sd of the 33 terminal states, the median-centred two-sided
 empirical p-value used by DiNgHy (plot_p_values.py):
     p = #{ samples : |x - median| >= |observed - median| } / 33,
-the one-sided p = #{ samples : x >= observed } / 33, and, for comparison,
+the one-sided p = #{ samples : x >= observed } / 33, the z-score\n(observed - mean)/sd over the 33 samples, and, for comparison,
 the phase-A null mean from summary.csv. -> results/final/indep33.{csv,md}
 """
 import argparse, glob, json, os
@@ -42,22 +42,23 @@ def main():
             x = T[m].to_numpy(float); o = obs[m]; med = np.median(x)
             rows.append(dict(dataset=name, measure=lab, n_chains=len(x), sweeps=max(sweeps),
                              observed=o, median=med, min=x.min(), max=x.max(), mean=x.mean(),
-                             sd=x.std(ddof=1), p_two_sided=np.mean(np.abs(x - med) >= abs(o - med)),
+                             sd=x.std(ddof=1), z=(o - x.mean()) / x.std(ddof=1),
+                             p_two_sided=np.mean(np.abs(x - med) >= abs(o - med)),
                              p_one_sided=np.mean(x >= o),
                              phaseA_null_mean=S.loc[(key, m), "null_mean"] if (key, m) in S.index else np.nan))
     D = pd.DataFrame(rows)
     D.to_csv(os.path.join(root, "indep33.csv"), index=False, float_format="%.6g")
     md = ["# DiNgHy-style replication: 33 independent chains from the observed state, terminal states only", "",
-          "| dataset | measure | chains | sweeps | observed | median | min | max | mean | sd | p (two-sided) | p (one-sided) | phase-A null mean |",
-          "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+          "| dataset | measure | chains | sweeps | observed | median | min | max | mean | sd | z | p (two-sided) | p (one-sided) | phase-A null mean |",
+          "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for r in D.itertuples():
         md.append(f"| {r.dataset} | {r.measure} | {r.n_chains} | {r.sweeps} | {r.observed:.4g} | {r.median:.4g} | "
-                  f"{r.min:.4g} | {r.max:.4g} | {r.mean:.4g} | {r.sd:.2g} | {r.p_two_sided:.2f} | "
+                  f"{r.min:.4g} | {r.max:.4g} | {r.mean:.4g} | {r.sd:.2g} | {r.z:.0f} | {r.p_two_sided:.2f} | "
                   f"{r.p_one_sided:.2f} | {r.phaseA_null_mean:.4g} |")
     md.append("\np (two-sided): median-centred empirical p-value as in DiNgHy; resolution 1/33 ≈ 0.03, "
               "so 0.00 means the observed value is farther from the median than every one of the 33 samples.")
     open(os.path.join(root, "indep33.md"), "w").write("\n".join(md) + "\n")
-    print(D[["dataset", "measure", "n_chains", "sweeps", "observed", "median", "max", "p_two_sided", "phaseA_null_mean"]]
+    print(D[["dataset", "measure", "observed", "mean", "sd", "z", "max", "p_two_sided", "p_one_sided", "phaseA_null_mean"]]
           .to_string(index=False, float_format=lambda v: f"{v:.4g}"))
     print("[saved]", os.path.join(root, "indep33.{csv,md}"))
 
