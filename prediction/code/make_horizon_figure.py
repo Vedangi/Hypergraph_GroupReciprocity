@@ -20,7 +20,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PANELS = [("emaileu", "email-Eu", [1, 2, 3, 5, 7, 10, 15, 20, 30]),
           ("enron", "Enron", [1, 2, 3, 5, 7, 10, 15, 20, 30]),
           ("dnc", "DNC", [1, 2, 3, 4, 5]),
-          ("twitter", "Twitter (Congress)", [1, 3, 5, 7, 10, 15, 20, 30, 60])]
+          ("twitter", "Twitter (Congress)", [1, 3, 5, 7, 10, 15, 20, 30])]
 SERIES = [("y_dyad", "any response", "#009490", "^", -0.18),
           ("y_group_exact", "exact-team response", "#2a78d6", "o", 0.0),
           ("y_mode", "group-response mode", "#eb6834", "s", +0.18)]
@@ -46,11 +46,12 @@ def main():
         ax.set_facecolor(SURF)
         for side in ("top", "right"):
             ax.spines[side].set_visible(False)
-        for side in ("left", "bottom"):
-            ax.spines[side].set_color(GRID)
+        for side in ("left", "bottom"):              # axes in ink, not gray
+            ax.spines[side].set_color(INK)
+            ax.spines[side].set_linewidth(0.9)
         ax.yaxis.grid(True, color=GRID, lw=0.6, alpha=0.7)
         ax.set_axisbelow(True)
-        ax.axhline(0, color=MUTED, lw=1.1, ls="--", zorder=1)
+        ax.axhline(0, color=INK, lw=1.0, ls="--", zorder=1)
         pos = {h: i for i, h in enumerate(horizons)}
         for label, _name, col, mk, dx in SERIES:
             s = df[df.label == label].sort_values("horizon")
@@ -63,15 +64,15 @@ def main():
         ax.set_xticks(range(len(horizons)))
         ax.set_xticklabels([str(h) for h in horizons])
         ax.set_xlim(-0.45, len(horizons) - 0.55)
-        ax.tick_params(labelsize=10.5, colors=MUTED, length=0)
+        ax.tick_params(labelsize=10.5, colors=INK, length=3, width=0.9)
         ax.set_title(title, fontsize=14, color=INK, pad=6)
-        ax.set_xlabel("horizon (days)", fontsize=12.5, color=BODY)
+        ax.set_xlabel("horizon (days)", fontsize=12.5, color=INK)
     axes[0].set_ylabel(r"$\Delta$AP  (graph+hypergraph $-$ graph)",
-                       fontsize=12.5, color=BODY)
+                       fontsize=12.5, color=INK)
     handles = [Line2D([], [], color=c, marker=m, ms=7, lw=2,
                       markeredgecolor=SURF, label=n)
                for _l, n, c, m, _d in SERIES]
-    fig.legend(handles=handles, fontsize=12.5, frameon=False, labelcolor=BODY,
+    fig.legend(handles=handles, fontsize=12.5, frameon=False, labelcolor=INK,
                loc="upper center", ncol=3, bbox_to_anchor=(0.5, 1.02),
                handlelength=2.2, columnspacing=2.4)
     fig.tight_layout(rect=(0, 0, 1, 0.91))
@@ -86,7 +87,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-# How this was run (2026-09-21):
+# How this was run (2026-09-21; 2026-10-20: 2000-replicate CIs, Twitter <= 30 d, ink axes):
 #   cd Hypergraph_GroupReciprocity/prediction/code
 #   <venv-python> make_horizon_figure.py                      # LightGBM, tuned 50-20-30
 #   <venv-python> make_horizon_figure.py --model LogReg

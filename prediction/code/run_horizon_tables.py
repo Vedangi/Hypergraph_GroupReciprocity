@@ -24,7 +24,7 @@ import link_prediction_expt as LPE
 BUCKETS = [("k=3-5", 3, 5), ("k=6-10", 6, 10), ("k>=11", 11, 10**9)]
 LABELS = ("y_dyad", "y_group_exact", "y_mode")
 MODELS = ("LogReg", "LightGBM")
-N_BOOT = 300
+N_BOOT = 2000           # bootstrap replicates (Efron & Tibshirani: >= 1000 for percentile CIs)
 
 
 def fit_score(Xtr, ytr, Xte, model_name):
@@ -138,6 +138,8 @@ def main():
                    help="merge into an existing <dataset>_horizon_tables.csv "
                         "(rows for the same horizon are replaced) instead "
                         "of overwriting it")
+    p.add_argument("--n-boot", type=int, default=N_BOOT,
+                   help="event-clustered bootstrap replicates for the dPR CIs")
     p.add_argument("--tune", action="store_true",
                    help="select LightGBM (early stopping + num_leaves) and "
                         "LogReg (C) on the validation block, per tier")
@@ -213,7 +215,7 @@ def main():
                     sC = fit_score(frame.loc[fit, C].to_numpy(), y_tr,
                                    sub[C].to_numpy(), mname)
                 apA, apC = ap(y_te, sA), ap(y_te, sC)
-                cis = cluster_boot_ci(y_te, sA, sC, eid, k=k_te)
+                cis = cluster_boot_ci(y_te, sA, sC, eid, k=k_te, n=a.n_boot)
                 lo, hi = cis["pooled"]
                 row = dict(dataset=a.dataset, horizon=h, label=label,
                            model=mname, n_train=int(fit.sum()),
@@ -290,3 +292,6 @@ if __name__ == "__main__":
 #   --dataset emaileu --horizons 2 3 5 10 15 20 --tune --merge --out-dir ../results/split_50_20_30_tuned
 # 70-30 split (no validation block, untuned): --train-q 0.7 --val-q 0.7 --out-dir ../results/split_70_30
 # DNC tuned horizons rerun with 1 3 5 7 (h=7 falls back: empty validation block)
+# 2026-10-20: bootstrap replicates raised 300 -> 2000 (--n-boot); all tables regenerated
+#   with the full horizon list per dataset (no --merge), same seeds, so point estimates are
+#   unchanged and only the CIs are re-estimated.

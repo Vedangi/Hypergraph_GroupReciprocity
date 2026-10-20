@@ -24,7 +24,7 @@ import link_prediction_expt as LPE
 from delta_phi_scorer import delta_phi_frame
 
 BUCKETS = [("k=3-5", 3, 5), ("k=6-10", 6, 10), ("k>=11", 11, 10**9)]
-N_BOOT, N_PERM = 300, 50
+N_BOOT, N_PERM = 2000, 50      # 2026-10-20: 300 -> 2000 bootstrap replicates
 
 
 def ap(y, s):
