@@ -54,6 +54,11 @@ DATASETS = {
         "kind": "triples", "step": DAY, "unit": "day",
         "default_horizons": (1, 3, 7), "default_theta": 0.5,
     },
+    "radoslaw": {   # KONECT manufacturing emails (Michalski et al.), Jan-Sep 2010
+        "path": ROOT / "data/radoslaw/out.radoslaw_email_email",
+        "kind": "triples", "step": DAY, "unit": "day",
+        "default_horizons": (1, 7, 30), "default_theta": 0.5,
+    },
     "twitter": {
         "path": ROOT / "data/twitter/twitter_observed_min1_events.parquet",
         "kind": "twitter", "step": DAY, "unit": "day",
