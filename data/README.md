@@ -8,7 +8,7 @@ duplicates kept.
 |---|---|---|---|
 | `fauci` | `fauci/fauci_temporal_hyperedges.csv` | processed from the Fauci email corpus (Benson et al., leopold-nih-foia release) | 408 |
 | `dnc` | `dnc/email-dnc.edges` | KONECT "DNC emails" | 5,200 |
-| `twitter` | `twitter/twitter_observed_min1_events.parquet` | mention events among 525 U.S. Congress members' accounts (427 House, 98 Senate), Jan 2020 – Jun 2022; tweets collected with snscrape, recipients = `mentionedUsers` restricted to observed members [original source of the tweet table: TO BE CITED] | 15,760 |
+| `twitter` | `twitter/twitter_observed_min1_events.parquet` | mention events among 525 U.S. Congress members' accounts (427 House, 98 Senate), Jan 2020 – Jun 2022; built from the "Congressional Tweets" corpus of Miller & Jiang (Zenodo, doi:10.5281/zenodo.8215566; 1,048,515 tweets of sitting members of the 117th Congress collected with snscrape; supplementary to Miller & Jiang, *Communication and Democracy* 59(1), 2025, doi:10.1080/27671127.2025.2478863; CC BY-NC-SA 4.0); recipients = `mentionedUsers` restricted to observed members | 15,760 |
 | `enron` | `enron/out.enron` | KONECT "Enron employees" temporal edges | 57,423 |
 | `emaileu` | `emailEu/email-Eu-core-temporal.txt` | SNAP `email-Eu-core-temporal` | (appendix base-measure study) |
 | `radoslaw` | `radoslaw/out.radoslaw_email_email` | KONECT "Manufacturing emails" (Radoslaw Michalski et al.) | 7,906 |
