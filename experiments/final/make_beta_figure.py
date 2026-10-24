@@ -50,8 +50,8 @@ def combo_dirs(root, ds, dedup=False):
     out = {}
     for d in sorted(glob.glob(os.path.join(root, ds, "beta*"))):
         tag = os.path.basename(d)
-        if "_k" in tag or tag.endswith("_dedup") != dedup:
-            continue
+        if "_k" in tag or "_indep" in tag or tag.endswith("_dedup") != dedup:
+            continue                      # size-cap runs and phase-I chains are not sweeps
         out[float(tag.replace("beta", "").replace("_dedup", ""))] = d
     return out
 
@@ -94,14 +94,15 @@ def beta_hat(betas, means, obs):
     return np.nan
 
 
-def style(ax):
+def style(ax, grid=False):
     ax.set_facecolor(SURF)
     for side in ("top", "right"):
         ax.spines[side].set_visible(False)
-    for side in ("left", "bottom"):
-        ax.spines[side].set_color(GRID)
-    ax.grid(True, color=GRID, lw=0.5, alpha=0.6)
-    ax.tick_params(labelsize=10.5, colors=MUTED, length=0)
+    for side in ("left", "bottom"):                  # axes and tick labels in ink
+        ax.spines[side].set_color(INK)
+        ax.spines[side].set_linewidth(0.9)
+    ax.grid(grid, color=GRID, lw=0.5, alpha=0.6)
+    ax.tick_params(labelsize=10.5, colors=INK, length=3, width=0.9)
 
 
 def main():
@@ -118,6 +119,9 @@ def main():
                    help="omit the moment-match beta-hat marker/annotation")
     p.add_argument("--all-filled", action="store_true",
                    help="draw every point filled (no mixing marker; placeholder figures)")
+    p.add_argument("--grid", action="store_true", help="draw the background grid (off by default)")
+    p.add_argument("--drop-lines", action="store_true",
+                   help="vertical line from the x-axis to where each observed level meets its curve")
     a = p.parse_args()
     root = os.path.abspath(a.out)
     manifest = json.load(open(os.path.join(root, "manifest.json")))
@@ -160,7 +164,7 @@ def main():
     axes = axes[0]
     fig.patch.set_facecolor(SURF)
     for ax, (ds, name) in zip(axes, panels):
-        style(ax)
+        style(ax, grid=a.grid)
         d = F[F.dataset == ds]
         if d.empty:
             ax.set_title(name + " (no complete runs)", color=INK); continue
@@ -173,6 +177,11 @@ def main():
             ax.plot(g.beta[ok], g["mean"][ok], mk, ms=6, color=col, mec=col, zorder=3)
             ax.plot(g.beta[~ok], g["mean"][~ok], mk, ms=6, mfc=SURF, mec=col, mew=1.4, zorder=3)
             ax.axhline(g.observed.iloc[0], color=col, lw=1, ls="--", alpha=0.65, zorder=1)
+            if a.drop_lines:
+                bx = beta_hat(g.beta, g["mean"], g.observed.iloc[0])
+                if np.isfinite(bx):
+                    ax.plot([bx, bx], [0, g.observed.iloc[0]], color=col, lw=1, ls="--",
+                            alpha=0.65, zorder=1)
         g = d[d.measure == prim].sort_values("beta")
         bh = np.nan if a.no_beta_hat else beta_hat(g.beta, g["mean"], g.observed.iloc[0])
         if np.isfinite(bh):
@@ -181,11 +190,11 @@ def main():
             ax.annotate(rf"$\hat\beta$={bh:.1f}", (bh, ax.get_ylim()[0]), xytext=(4, 4),
                         textcoords="offset points", fontsize=10, color=pc, va="bottom")
         ax.set_title(name, fontsize=12, color=INK)
-        ax.set_xlabel(r"$\beta$", fontsize=12, color=BODY)
+        ax.set_xlabel(r"$\beta$", fontsize=12, color=INK)
         ax.set_xticks(sorted(F.beta.unique()))
     axes[0].set_ylabel(r"$\mathbb{E}_\beta[R]$" +
                        ("  (support, $M$-weighted)" if a.set != "multi" else ""),
-                       fontsize=11.5, color=BODY)
+                       fontsize=11.5, color=INK)
     handles = [Line2D([], [], color=col, marker=mk, lw=1.8, ms=6, label=lab)
                for _, lab, col, mk in measures]
     handles += [Line2D([], [], color=MUTED, ls="--", lw=1, label="observed")]
@@ -193,7 +202,7 @@ def main():
         handles += [Line2D([], [], color=MUTED, marker="o", mfc=SURF, lw=0, ms=6, mew=1.4,
                            label=rf"ESS($\Phi$)<{a.ess_min:g} or $\widehat R$>{a.rhat_max}")]
     fig.legend(handles=handles, loc="upper center", ncol=len(handles), frameon=False,
-               fontsize=10.5, labelcolor=BODY, bbox_to_anchor=(0.5, 1.02))
+               fontsize=10.5, labelcolor=INK, bbox_to_anchor=(0.5, 1.02))
     fig.tight_layout(rect=(0, 0, 1, 0.93))
     for ext in ("pdf", "png"):
         out = os.path.join(root, f"fig_beta_sweep{S['tag']}.{ext}")
@@ -220,6 +229,8 @@ if __name__ == "__main__":
 #   <venv-python> make_beta_figure.py --set support_tilt     # phase T (support-family tilt)
 #   add --beta-max 4 to drop the diagnostic-only beta=5 points from the plot
 #   placeholder (no beta-hat, no mixing markers): --no-beta-hat --all-filled
+#   2026-10-24 style: ink axes/labels, no grid (--grid to restore), --drop-lines adds a
+#   vertical segment from the x-axis to each observed-level/curve intersection
 # Render-only: reads results/final/<ds>/beta*/chain*/{trace.csv,meta.json} and
 # results/final/manifest.json; writes results/final/beta_sweep_summary[_support].csv
 # and fig_beta_sweep[_support].{pdf,png}.
