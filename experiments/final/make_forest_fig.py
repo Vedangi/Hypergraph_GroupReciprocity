@@ -37,7 +37,8 @@ FAMS = {"multi": dict(filt="k3-25", suf="_multi", sup=r"\rm m", name="multiplici
 
 def load(path):
     s = pd.read_csv(path)
-    return s[s.beta == 0]
+    # beta = 0 main chains only: drop the phase-I (33 independent chains) combos
+    return s[(s.beta == 0) & ~s.combo.str.contains("indep")]
 
 
 def rows_y():
@@ -57,10 +58,11 @@ def panel(ax, S, fam, col, ypos, floor, show_labels):
     ax.set_facecolor(SURF)
     for side in ("top", "right"):
         ax.spines[side].set_visible(False)
-    for side in ("left", "bottom"):
-        ax.spines[side].set_color(GRID)
-    ax.grid(True, axis="x", color=GRID, lw=0.5, alpha=0.6)
-    ax.tick_params(length=0, labelsize=10, colors=MUTED)
+    for side in ("left", "bottom"):                  # axes and numbers in ink
+        ax.spines[side].set_color(INK)
+        ax.spines[side].set_linewidth(0.9)
+    ax.grid(False)
+    ax.tick_params(length=3, width=0.9, labelsize=10, colors=INK)
     lo_all = []
     for key, name, dom in ORDER:
         if key not in d.index:
@@ -77,14 +79,14 @@ def panel(ax, S, fam, col, ypos, floor, show_labels):
         ratio = r.observed / r.null_mean if r.null_mean > 0 else np.inf
         ax.text(1.01, y, f"×{ratio:.1f}" if np.isfinite(ratio) and ratio < 100 else
                 (f"×{ratio:.0f}" if np.isfinite(ratio) else "×∞"),
-                transform=ax.get_yaxis_transform(), fontsize=9, color=BODY, va="center")
+                transform=ax.get_yaxis_transform(), fontsize=9, color=INK, va="center")
         lo_all.append(max(min(q025, r.null_mean, r.observed), floor))
     ax.set_xscale("log")
     ax.set_xlim(min(lo_all) / 1.6, 1.0)
     ax.set_ylim(max(ypos.values()) + 0.8, -0.8)
     if show_labels:                       # axes share y: set the labels once
         ax.set_yticks([ypos[k] for k, *_ in ORDER])
-        ax.set_yticklabels([n for _, n, _ in ORDER], fontsize=10.5, color=BODY)
+        ax.set_yticklabels([n for _, n, _ in ORDER], fontsize=10.5, color=INK)
     ax.set_title(rf"${c[1]}^{{{f['sup']}}}$  ({f['name']})", fontsize=11.5, color=INK, pad=8)
 
 
@@ -92,25 +94,35 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--out", default=os.path.join(HERE, "..", "..", "results", "final"))
     p.add_argument("--appendix", action="store_true")
+    p.add_argument("--family", choices=list(FAMS), default=None,
+                   help="one family, three panels (any / part / all), own legend")
+    p.add_argument("--summary", default="summary.csv",
+                   help="summary file inside --out (e.g. summary_s1000.csv)")
     p.add_argument("--floor", type=float, default=1e-5, help="log-axis floor for zero quantiles")
     a = p.parse_args()
     root = os.path.abspath(a.out)
-    S = load(os.path.join(root, "summary.csv"))
+    S = load(os.path.join(root, a.summary))
+    tag = a.summary.replace("summary", "").replace(".csv", "")
     ypos = rows_y()
-    if a.appendix:
+    if a.family:
+        fig, axes = plt.subplots(1, 3, figsize=(12.5, 4.4), sharey=True)
+        for j, col in enumerate(("any", "part", "all")):
+            panel(axes[j], S, a.family, col, ypos, a.floor, show_labels=(j == 0))
+        stem = f"fig_forest_{a.family}{tag}"
+    elif a.appendix:
         fig, axes = plt.subplots(2, 3, figsize=(12.5, 7.4), sharey=True)
         for i, fam in enumerate(("multi", "support")):
             for j, col in enumerate(("any", "part", "all")):
                 panel(axes[i, j], S, fam, col, ypos, a.floor, show_labels=(j == 0))
-        stem = "fig_forest_appendix"
+        stem = f"fig_forest_appendix{tag}"
     else:
         fig, axes = plt.subplots(1, 2, figsize=(9.2, 4.4), sharey=True)
         panel(axes[0], S, "multi", "part", ypos, a.floor, show_labels=True)
         panel(axes[1], S, "support", "part", ypos, a.floor, show_labels=False)
-        stem = "fig_forest_main"
+        stem = f"fig_forest_main{tag}"
     fig.patch.set_facecolor(SURF)
-    for ax in np.ravel(axes)[-(3 if a.appendix else 2):]:
-        ax.set_xlabel("reciprocity (log scale)", fontsize=10.5, color=BODY)
+    for ax in np.ravel(axes)[-(3 if (a.appendix or a.family) else 2):]:
+        ax.set_xlabel("reciprocity (log scale)", fontsize=10.5, color=INK)
     # domain separators + labels
     for ax in np.ravel(axes):
         ysep = (ypos["twitter"] + ypos["congress"]) / 2
@@ -120,7 +132,7 @@ def main():
                Line2D([], [], marker="o", color=BODY, lw=0, ms=6.5, label="observed"),
                Line2D([], [], lw=0, label="×r = observed / null mean")]
     fig.legend(handles=handles, loc="upper center", ncol=4, frameon=False, fontsize=10,
-               labelcolor=BODY, bbox_to_anchor=(0.5, 1.0), handletextpad=0.6)
+               labelcolor=INK, bbox_to_anchor=(0.5, 1.0), handletextpad=0.6)
     fig.tight_layout(rect=(0, 0, 1, 0.94))
     for ext in ("pdf", "png"):
         out = os.path.join(root, f"{stem}.{ext}")
@@ -134,5 +146,9 @@ if __name__ == "__main__":
 # How this was run (2026-10-13):
 #   <venv-python> make_forest_fig.py              # main: R_part, multi | support
 #   <venv-python> make_forest_fig.py --appendix   # 2 x 3 (family x any/part/all)
+#   per-family 1 x 3 figures from the common 1000-sweep budget (2026-10-24):
+#     <venv-python> diagnose_final.py --max-sweeps 1000 --tag _s1000
+#     <venv-python> make_forest_fig.py --family multi   --summary summary_s1000.csv
+#     <venv-python> make_forest_fig.py --family support --summary summary_s1000.csv
 # Render-only: reads results/final/summary.csv; writes fig_forest_main.{pdf,png}
 # and fig_forest_appendix.{pdf,png}.

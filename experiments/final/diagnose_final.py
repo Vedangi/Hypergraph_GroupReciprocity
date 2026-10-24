@@ -48,6 +48,11 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--out", default=os.path.join(HERE, "..", "..", "results", "final"))
     p.add_argument("--burn", type=float, default=0.25)
+    p.add_argument("--max-sweeps", type=int, default=None,
+                   help="truncate every trace to sweeps <= this before burn-in "
+                        "(e.g. 1000 = the common minimum budget across datasets)")
+    p.add_argument("--tag", default="",
+                   help="suffix for the output files, e.g. _s1000 -> summary_s1000.csv")
     a = p.parse_args()
     root = os.path.abspath(a.out)
     metas, diag, summ = [], [], []
@@ -57,7 +62,7 @@ def main():
     if not len(cm):
         raise SystemExit("no completed chains found")
     cm["combo"] = cm.dir.map(lambda d: os.path.relpath(os.path.dirname(d), root))
-    cm.drop(columns=["observed"]).to_csv(os.path.join(root, "chains.csv"), index=False)
+    cm.drop(columns=["observed"]).to_csv(os.path.join(root, f"chains{a.tag}.csv"), index=False)
     mpath = os.path.join(root, "manifest.json")
     manifest = json.load(open(mpath)) if os.path.exists(mpath) else {}
     recs = []
@@ -82,6 +87,8 @@ def main():
         all_tr = []
         for r in g.itertuples():
             tr = pd.read_csv(os.path.join(r.dir, "trace.csv"))
+            if a.max_sweeps is not None:
+                tr = tr[tr.sweep <= a.max_sweeps]
             tr = tr.iloc[int(a.burn * len(tr)):]
             traces[r.init].append(tr); all_tr.append(tr)
         cols = [c for c in all_tr[0].columns if c not in ("sweep",)]
@@ -130,8 +137,8 @@ def main():
         row_d["accepted"] = not fails; row_d["fail_reasons"] = "; ".join(fails)
         diag.append(row_d)
         recs.append((combo, fails))
-    pd.DataFrame(diag).to_csv(os.path.join(root, "diagnostics.csv"), index=False)
-    pd.DataFrame(summ).to_csv(os.path.join(root, "summary.csv"), index=False)
+    pd.DataFrame(diag).to_csv(os.path.join(root, f"diagnostics{a.tag}.csv"), index=False)
+    pd.DataFrame(summ).to_csv(os.path.join(root, f"summary{a.tag}.csv"), index=False)
     print(f"{len(diag)} combos; accepted {sum(1 for _, f in recs if not f)}")
     for combo, fails in recs:
         if fails:
