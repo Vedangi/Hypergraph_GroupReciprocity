@@ -101,7 +101,10 @@ def style(ax, grid=False):
     for side in ("left", "bottom"):                  # axes and tick labels in ink
         ax.spines[side].set_color(INK)
         ax.spines[side].set_linewidth(0.9)
-    ax.grid(grid, color=GRID, lw=0.5, alpha=0.6)
+    if grid:
+        ax.grid(True, color=GRID, lw=0.5, alpha=0.6)
+    else:
+        ax.grid(False)
     ax.tick_params(labelsize=10.5, colors=INK, length=3, width=0.9)
 
 
@@ -168,6 +171,7 @@ def main():
         d = F[F.dataset == ds]
         if d.empty:
             ax.set_title(name + " (no complete runs)", color=INK); continue
+        drops = []
         for c, lab, col, mk in measures:
             g = d[d.measure == c].sort_values("beta")
             ax.plot(g.beta, g["mean"], color=col, lw=1.8, zorder=2)
@@ -180,8 +184,13 @@ def main():
             if a.drop_lines:
                 bx = beta_hat(g.beta, g["mean"], g.observed.iloc[0])
                 if np.isfinite(bx):
-                    ax.plot([bx, bx], [0, g.observed.iloc[0]], color=col, lw=1, ls="--",
-                            alpha=0.65, zorder=1)
+                    drops.append((bx, g.observed.iloc[0], col))
+        if drops:                               # from the axis floor up to the curve
+            y0, y1 = ax.get_ylim()
+            for bx, yo, col in drops:
+                ax.plot([bx, bx], [y0, yo], color=col, lw=1, ls="--", alpha=0.65,
+                        zorder=1, clip_on=True)
+            ax.set_ylim(y0, y1)
         g = d[d.measure == prim].sort_values("beta")
         bh = np.nan if a.no_beta_hat else beta_hat(g.beta, g["mean"], g.observed.iloc[0])
         if np.isfinite(bh):
