@@ -36,7 +36,7 @@ from diagnose_final import tau_int, split_rhat                  # noqa: E402
 from make_main_outputs import SETS, INK, BODY, MUTED, GRID, SURF  # noqa: E402
 
 DATASETS = [("emaileu", "Email-Eu"), ("enron", "Enron"),
-            ("twitter", "Twitter"), ("congress", "Congress-bills")]
+            ("twitter", "Twitter (Congress)"), ("congress", "Congress-bills")]
 PRIMARY = {"multi": "r2_multi", "support": "r2_support_M", "support_tilt": "r2_support_M"}
 # support_tilt: phase T chains -- dedup start E*, tilt Phi = |E*| R_part^M
 # (phi="r2M"); beta=0 is phase D. Same measures as "support", own tag.
