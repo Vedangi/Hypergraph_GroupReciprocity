@@ -62,6 +62,8 @@ def panel(ax, S, fam, col, ypos, floor, show_labels):
         ax.spines[side].set_color(INK)
         ax.spines[side].set_linewidth(0.9)
     ax.grid(False)
+    ax.xaxis.grid(True, which="major", color=GRID, lw=0.6, alpha=0.7)   # faint decade lines
+    ax.set_axisbelow(True)
     ax.tick_params(length=3, width=0.9, labelsize=10, colors=INK)
     lo_all = []
     for key, name, dom in ORDER:
